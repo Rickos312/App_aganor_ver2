@@ -1,0 +1,51 @@
+import React, { useState } from 'react';
+import Header from './components/layout/Header';
+import Sidebar from './components/layout/Sidebar';
+import Dashboard from './components/Dashboard';
+import Entreprises from './components/Entreprises';
+import Controles from './components/Controles';
+import Facturation from './components/Facturation';
+import Agents from './components/Agents';
+import './styles/globals.css';
+
+type ModuleType = 'dashboard' | 'entreprises' | 'controles' | 'facturation' | 'agents' | 'parametres';
+
+function App() {
+  const [activeModule, setActiveModule] = useState<ModuleType>('dashboard');
+  const [user] = useState({
+    nom: 'Martin NDONG',
+    role: 'Inspecteur Principal',
+    avatar: 'MN'
+  });
+
+  const renderContent = () => {
+    switch (activeModule) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'entreprises':
+        return <Entreprises />;
+      case 'controles':
+        return <Controles />;
+      case 'facturation':
+        return <Facturation />;
+      case 'agents':
+        return <Agents />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  return (
+    <div className="app">
+      <Header user={user} />
+      <div className="app-body">
+        <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} />
+        <main className="main-content">
+          {renderContent()}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default App;
