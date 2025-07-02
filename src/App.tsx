@@ -14,10 +14,9 @@ type ModuleType = 'dashboard' | 'entreprises' | 'controles' | 'facturation' | 'a
 function App() {
   const [activeModule, setActiveModule] = useState<ModuleType>('dashboard');
   const [user] = useState({
-    nom: 'Vanessa PENDY',
-    role: 'Technicienne Métrologie',
-    statut: 'actif',
-    avatar: 'VP'
+    nom: 'Martin NDONG',
+    role: 'Inspecteur Principal',
+    avatar: 'MN'
   });
 
   const renderContent = () => {
@@ -41,10 +40,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header 
-        user={user} 
-        onSettingsClick={() => setActiveModule('parametres')}
-      />
+      <Header user={user} />
       <div className="app-body">
         <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} />
         <main className="main-content">

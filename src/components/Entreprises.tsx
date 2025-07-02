@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Building2, MapPin, Phone, Mail, X, Save, User, Settings, Navigation, Filter, Eye, Edit } from 'lucide-react';
+import { Search, Plus, Building2, MapPin, Phone, Mail, X, Save, User, Settings, Navigation } from 'lucide-react';
 
 interface Instrument {
   type: string;
@@ -130,7 +130,91 @@ const Entreprises: React.FC = () => {
           numeroSerie: 'MT2025001',
           localisation: 'Caisse principale'
         }
-      ]
+      ],
+      pointContact: {
+        nom: 'OBIANG',
+        prenom: 'Marie-France',
+        telephone: '+241 06 78 90 13',
+        email: 'marie.obiang@carrefour-immacule.ga'
+      }
+    },
+    {
+      id: 7,
+      siret: '78901234567890',
+      nom: 'Station Total Gabon',
+      adresse: 'Boulevard Triomphal, Libreville',
+      telephone: '+241 07 89 01 23',
+      email: 'station@total-gabon.ga',
+      secteur: 'Pétrole',
+      statut: 'conforme',
+      dernierControle: '2025-01-09',
+      instruments: [
+        {
+          type: 'Pompe à essence',
+          marque: 'Gilbarco',
+          modele: 'Encore 700S',
+          numeroSerie: 'GB2025001',
+          localisation: 'Îlot 1'
+        }
+      ],
+      pointContact: {
+        nom: 'MBOUMBA',
+        prenom: 'Jean-Pierre',
+        telephone: '+241 07 89 01 24',
+        email: 'jp.mboumba@total-gabon.ga'
+      }
+    },
+    {
+      id: 8,
+      siret: '89012345678901',
+      nom: 'Petro-Gabon',
+      adresse: 'Route de l\'Aéroport, Libreville',
+      telephone: '+241 08 90 12 34',
+      email: 'info@petro-gabon.ga',
+      secteur: 'Pétrole',
+      statut: 'non_conforme',
+      dernierControle: '2025-01-08',
+      instruments: [
+        {
+          type: 'Pompe à essence',
+          marque: 'Wayne',
+          modele: 'Helix 6000',
+          numeroSerie: 'WY2025001',
+          localisation: 'Îlot principal'
+        }
+      ],
+      pointContact: {
+        nom: 'NZIGOU',
+        prenom: 'Patrick',
+        telephone: '+241 08 90 12 35',
+        email: 'p.nzigou@petro-gabon.ga'
+      }
+    },
+    {
+      id: 9,
+      siret: '90123456789012',
+      nom: 'ETS-Jean Pneu',
+      adresse: 'Quartier Akanda, Libreville',
+      telephone: '+241 09 01 23 45',
+      email: 'contact@ets-jean-pneu.ga',
+      secteur: 'Commerce',
+      statut: 'en_attente',
+      dernierControle: '2025-01-07',
+      instruments: [
+        {
+          type: 'Manomètre à pression',
+          marque: 'Bourdon Haenni',
+          modele: 'BH-250',
+          numeroSerie: 'BH2025001',
+          localisation: 'Atelier principal'
+        }
+      ],
+      pointContact: {
+        nom: 'MOUKETOU',
+        prenom: 'Jean',
+        telephone: '+241 09 01 23 46',
+        email: 'j.mouketou@ets-jean-pneu.ga'
+      }
     }
   ]);
 
@@ -142,6 +226,10 @@ const Entreprises: React.FC = () => {
     email: '',
     secteur: '',
     instruments: [
+      { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+      { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+      { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+      { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
       { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' }
     ],
     geolocalisation: {
@@ -193,21 +281,10 @@ const Entreprises: React.FC = () => {
 
   const getStatusLabel = (statut: string) => {
     switch (statut) {
-      case 'conforme': return 'CONFORME';
-      case 'non_conforme': return 'NON CONFORME';
-      case 'en_attente': return 'EN ATTENTE';
+      case 'conforme': return 'Conforme';
+      case 'non_conforme': return 'Non conforme';
+      case 'en_attente': return 'En attente';
       default: return statut;
-    }
-  };
-
-  const getSecteurColor = (secteur: string) => {
-    switch (secteur) {
-      case 'Transport': return 'secteur-transport';
-      case 'Pétrole': return 'secteur-petrole';
-      case 'Santé': return 'secteur-sante';
-      case 'Commerce': return 'secteur-commerce';
-      case 'Industrie': return 'secteur-industrie';
-      default: return 'secteur-default';
     }
   };
 
@@ -218,19 +295,82 @@ const Entreprises: React.FC = () => {
     }));
   };
 
+  const handleInstrumentChange = (index: number, field: keyof Instrument, value: string) => {
+    setNouvelleEntreprise(prev => ({
+      ...prev,
+      instruments: prev.instruments.map((instrument, i) => 
+        i === index ? { ...instrument, [field]: value } : instrument
+      )
+    }));
+  };
+
+  const handleGeolocationChange = (field: 'latitude' | 'longitude', value: string) => {
+    setNouvelleEntreprise(prev => ({
+      ...prev,
+      geolocalisation: {
+        ...prev.geolocalisation,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleContactChange = (field: keyof NouvelleEntreprise['pointContact'], value: string) => {
+    setNouvelleEntreprise(prev => ({
+      ...prev,
+      pointContact: {
+        ...prev.pointContact,
+        [field]: value
+      }
+    }));
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setNouvelleEntreprise(prev => ({
+            ...prev,
+            geolocalisation: {
+              latitude: position.coords.latitude.toString(),
+              longitude: position.coords.longitude.toString()
+            }
+          }));
+        },
+        (error) => {
+          alert('Erreur lors de la récupération de la géolocalisation: ' + error.message);
+        }
+      );
+    } else {
+      alert('La géolocalisation n\'est pas supportée par ce navigateur.');
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation basique
     if (!nouvelleEntreprise.nom || !nouvelleEntreprise.siret || !nouvelleEntreprise.secteur) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
+    // Vérifier si le SIRET existe déjà
     if (entreprises.some(ent => ent.siret === nouvelleEntreprise.siret)) {
       alert('Une entreprise avec ce SIRET existe déjà');
       return;
     }
 
+    // Validation des instruments (au moins un instrument doit être rempli)
+    const instrumentsValides = nouvelleEntreprise.instruments.filter(inst => 
+      inst.type && inst.marque && inst.modele && inst.numeroSerie
+    );
+
+    if (instrumentsValides.length === 0) {
+      alert('Veuillez renseigner au moins un instrument de mesure complet');
+      return;
+    }
+
+    // Ajouter la nouvelle entreprise
     const newId = Math.max(...entreprises.map(e => e.id)) + 1;
     const newEntreprise: Entreprise = {
       id: newId,
@@ -242,9 +382,7 @@ const Entreprises: React.FC = () => {
       secteur: nouvelleEntreprise.secteur,
       statut: 'en_attente',
       dernierControle: new Date().toISOString().split('T')[0],
-      instruments: nouvelleEntreprise.instruments.filter(inst => 
-        inst.type && inst.marque && inst.modele && inst.numeroSerie
-      ),
+      instruments: instrumentsValides,
       geolocalisation: nouvelleEntreprise.geolocalisation.latitude && nouvelleEntreprise.geolocalisation.longitude ? {
         latitude: parseFloat(nouvelleEntreprise.geolocalisation.latitude),
         longitude: parseFloat(nouvelleEntreprise.geolocalisation.longitude)
@@ -255,6 +393,7 @@ const Entreprises: React.FC = () => {
 
     setEntreprises(prev => [...prev, newEntreprise]);
     
+    // Réinitialiser le formulaire et fermer le modal
     setNouvelleEntreprise({
       siret: '',
       nom: '',
@@ -263,6 +402,10 @@ const Entreprises: React.FC = () => {
       email: '',
       secteur: '',
       instruments: [
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
         { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' }
       ],
       geolocalisation: {
@@ -289,6 +432,10 @@ const Entreprises: React.FC = () => {
       email: '',
       secteur: '',
       instruments: [
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
         { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' }
       ],
       geolocalisation: {
@@ -304,146 +451,118 @@ const Entreprises: React.FC = () => {
     });
   };
 
-  // Statistiques des entreprises
-  const statsEntreprises = {
-    total: entreprises.length,
-    conformes: entreprises.filter(e => e.statut === 'conforme').length,
-    nonConformes: entreprises.filter(e => e.statut === 'non_conforme').length,
-    enAttente: entreprises.filter(e => e.statut === 'en_attente').length
-  };
-
   return (
-    <div className="entreprises-page">
-      {/* Header moderne */}
-      <div className="entreprises-header-modern">
-        <div className="header-content-modern">
-          <div className="header-title-modern">
-            <div className="title-icon-modern">
-              <Building2 size={24} />
-            </div>
-            <div className="title-text-modern">
-              <h1>Gestion des Entreprises</h1>
-              <p>Répertoire des entreprises contrôlées par AGANOR</p>
-            </div>
+    <div className="page-container">
+      <div className="page-header">
+        <div className="page-title">
+          <Building2 size={32} />
+          <div>
+            <h1>Gestion des Entreprises</h1>
+            <p>Répertoire des entreprises contrôlées par AGANOR</p>
           </div>
-          <button className="btn-add-modern" onClick={() => setShowModal(true)}>
-            <Plus size={20} />
-            Nouvelle entreprise
-          </button>
         </div>
+        <button className="btn-primary" onClick={() => setShowModal(true)}>
+          <Plus size={20} />
+          Nouvelle entreprise
+        </button>
       </div>
 
-      {/* Barre de recherche et filtres */}
-      <div className="search-filters-modern">
-        <div className="search-container-modern">
+      <div className="filters-section">
+        <div className="search-container">
           <Search size={20} />
           <input
             type="text"
             placeholder="Rechercher par nom ou SIRET..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input-enterprise"
+            className="search-input"
           />
         </div>
-        <div className="filter-container-modern">
-          <Filter size={20} />
-          <select
-            value={selectedSecteur}
-            onChange={(e) => setSelectedSecteur(e.target.value)}
-            className="filter-select-enterprise"
-          >
-            <option value="">Tous les secteurs</option>
-            {secteurs.map(secteur => (
-              <option key={secteur} value={secteur}>{secteur}</option>
-            ))}
-          </select>
+        <select
+          value={selectedSecteur}
+          onChange={(e) => setSelectedSecteur(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">Tous les secteurs</option>
+          {secteurs.map(secteur => (
+            <option key={secteur} value={secteur}>{secteur}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="entreprises-stats">
+        <div className="stat-item">
+          <span className="stat-number">{entreprises.length}</span>
+          <span className="stat-label">Total entreprises</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{entreprises.filter(e => e.statut === 'conforme').length}</span>
+          <span className="stat-label">Conformes</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{entreprises.filter(e => e.statut === 'non_conforme').length}</span>
+          <span className="stat-label">Non conformes</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{entreprises.filter(e => e.statut === 'en_attente').length}</span>
+          <span className="stat-label">En attente</span>
         </div>
       </div>
 
-      {/* Statistiques modernes */}
-      <div className="stats-container-modern">
-        <div className="stat-card-enterprise total">
-          <div className="stat-number-enterprise">{statsEntreprises.total}</div>
-          <div className="stat-label-enterprise">Total entreprises</div>
-        </div>
-        <div className="stat-card-enterprise conformes">
-          <div className="stat-number-enterprise">{statsEntreprises.conformes}</div>
-          <div className="stat-label-enterprise">Conformes</div>
-        </div>
-        <div className="stat-card-enterprise non-conformes">
-          <div className="stat-number-enterprise">{statsEntreprises.nonConformes}</div>
-          <div className="stat-label-enterprise">Non conformes</div>
-        </div>
-        <div className="stat-card-enterprise en-attente">
-          <div className="stat-number-enterprise">{statsEntreprises.enAttente}</div>
-          <div className="stat-label-enterprise">En attente</div>
-        </div>
-      </div>
-
-      {/* Grille des entreprises */}
-      <div className="entreprises-grid-modern">
+      <div className="entreprises-grid">
         {filteredEntreprises.map(entreprise => (
-          <div key={entreprise.id} className="entreprise-card-modern">
-            <div className="card-header-modern">
-              <div className="entreprise-info-header">
-                <h3 className="entreprise-nom">{entreprise.nom}</h3>
-                <div className={`status-badge-modern ${getStatusClass(entreprise.statut)}`}>
-                  {getStatusLabel(entreprise.statut)}
-                </div>
-              </div>
+          <div key={entreprise.id} className="entreprise-card">
+            <div className="card-header">
+              <h3>{entreprise.nom}</h3>
+              <span className={`status ${getStatusClass(entreprise.statut)}`}>
+                {getStatusLabel(entreprise.statut)}
+              </span>
             </div>
             
-            <div className="card-content-modern">
-              <div className="info-row-modern">
-                <span className="info-label-modern">SIRET:</span>
-                <span className="info-value-modern">{entreprise.siret}</span>
+            <div className="card-content">
+              <div className="info-item">
+                <span className="info-label">SIRET:</span>
+                <span className="info-value">{entreprise.siret}</span>
               </div>
               
-              <div className="info-row-modern">
+              <div className="info-item">
                 <MapPin size={16} />
-                <span className="info-value-modern">{entreprise.adresse}</span>
+                <span className="info-value">{entreprise.adresse}</span>
               </div>
               
-              <div className="info-row-modern">
+              <div className="info-item">
                 <Phone size={16} />
-                <span className="info-value-modern">{entreprise.telephone}</span>
+                <span className="info-value">{entreprise.telephone}</span>
               </div>
               
-              <div className="info-row-modern">
+              <div className="info-item">
                 <Mail size={16} />
-                <span className="info-value-modern">{entreprise.email}</span>
+                <span className="info-value">{entreprise.email}</span>
               </div>
               
-              <div className="info-row-modern">
-                <span className="info-label-modern">Secteur:</span>
-                <span className={`secteur-badge-modern ${getSecteurColor(entreprise.secteur)}`}>
-                  {entreprise.secteur}
-                </span>
+              <div className="info-item">
+                <span className="info-label">Secteur:</span>
+                <span className="secteur-badge">{entreprise.secteur}</span>
               </div>
               
               {entreprise.instruments && entreprise.instruments.length > 0 && (
-                <div className="info-row-modern">
-                  <span className="info-label-modern">Instruments:</span>
-                  <span className="info-value-modern">{entreprise.instruments[0].type}</span>
+                <div className="info-item">
+                  <span className="info-label">Instruments:</span>
+                  <span className="info-value">{entreprise.instruments[0].type}</span>
                 </div>
               )}
               
-              <div className="info-row-modern">
-                <span className="info-label-modern">Dernier contrôle:</span>
-                <span className="info-value-modern">
+              <div className="info-item">
+                <span className="info-label">Dernier contrôle:</span>
+                <span className="info-value">
                   {new Date(entreprise.dernierControle).toLocaleDateString('fr-FR')}
                 </span>
               </div>
             </div>
             
-            <div className="card-actions-modern">
-              <button className="btn-action-modern secondary">
-                <Eye size={16} />
-                Voir détails
-              </button>
-              <button className="btn-action-modern primary">
-                Nouveau contrôle
-              </button>
+            <div className="card-actions">
+              <button className="btn-secondary">Voir détails</button>
+              <button className="btn-primary">Nouveau contrôle</button>
             </div>
           </div>
         ))}
@@ -451,23 +570,24 @@ const Entreprises: React.FC = () => {
 
       {/* Modal pour ajouter une nouvelle entreprise */}
       {showModal && (
-        <div className="modal-overlay-enterprise">
-          <div className="modal-content-enterprise">
-            <div className="modal-header-enterprise">
+        <div className="modal-overlay">
+          <div className="modal-content large-modal">
+            <div className="modal-header">
               <h2>Nouvelle Entreprise</h2>
-              <button className="modal-close-enterprise" onClick={handleCloseModal}>
+              <button className="modal-close" onClick={handleCloseModal}>
                 <X size={24} />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="modal-form-enterprise">
-              <div className="form-section-enterprise">
-                <h3 className="section-title-enterprise">
+            <form onSubmit={handleSubmit} className="modal-form">
+              {/* Informations générales */}
+              <div className="form-section">
+                <h3 className="section-title">
                   <Building2 size={20} />
                   Informations générales
                 </h3>
-                <div className="form-grid-enterprise">
-                  <div className="form-group-enterprise">
+                <div className="form-grid">
+                  <div className="form-group">
                     <label htmlFor="nom">Nom de l'entreprise *</label>
                     <input
                       type="text"
@@ -479,7 +599,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-enterprise">
+                  <div className="form-group">
                     <label htmlFor="siret">SIRET *</label>
                     <input
                       type="text"
@@ -492,7 +612,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-enterprise full-width">
+                  <div className="form-group full-width">
                     <label htmlFor="adresse">Adresse</label>
                     <input
                       type="text"
@@ -503,7 +623,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-enterprise">
+                  <div className="form-group">
                     <label htmlFor="telephone">Téléphone</label>
                     <input
                       type="tel"
@@ -514,7 +634,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-enterprise">
+                  <div className="form-group">
                     <label htmlFor="email">Email</label>
                     <input
                       type="email"
@@ -525,7 +645,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-enterprise full-width">
+                  <div className="form-group full-width">
                     <label htmlFor="secteur">Secteur d'activité *</label>
                     <select
                       id="secteur"
@@ -542,11 +662,177 @@ const Entreprises: React.FC = () => {
                 </div>
               </div>
 
-              <div className="modal-actions-enterprise">
-                <button type="button" className="btn-cancel-enterprise" onClick={handleCloseModal}>
+              {/* Point de contact */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <User size={20} />
+                  Point de contact
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="contact-nom">Nom</label>
+                    <input
+                      type="text"
+                      id="contact-nom"
+                      value={nouvelleEntreprise.pointContact.nom}
+                      onChange={(e) => handleContactChange('nom', e.target.value)}
+                      placeholder="Nom du contact"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="contact-prenom">Prénom</label>
+                    <input
+                      type="text"
+                      id="contact-prenom"
+                      value={nouvelleEntreprise.pointContact.prenom}
+                      onChange={(e) => handleContactChange('prenom', e.target.value)}
+                      placeholder="Prénom du contact"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="contact-telephone">Téléphone</label>
+                    <input
+                      type="tel"
+                      id="contact-telephone"
+                      value={nouvelleEntreprise.pointContact.telephone}
+                      onChange={(e) => handleContactChange('telephone', e.target.value)}
+                      placeholder="+241 XX XX XX XX"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="contact-email">Email</label>
+                    <input
+                      type="email"
+                      id="contact-email"
+                      value={nouvelleEntreprise.pointContact.email}
+                      onChange={(e) => handleContactChange('email', e.target.value)}
+                      placeholder="contact@entreprise.ga"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Géolocalisation */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Navigation size={20} />
+                  Géolocalisation
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="latitude">Latitude</label>
+                    <input
+                      type="number"
+                      id="latitude"
+                      step="any"
+                      value={nouvelleEntreprise.geolocalisation.latitude}
+                      onChange={(e) => handleGeolocationChange('latitude', e.target.value)}
+                      placeholder="Ex: 0.3901"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="longitude">Longitude</label>
+                    <input
+                      type="number"
+                      id="longitude"
+                      step="any"
+                      value={nouvelleEntreprise.geolocalisation.longitude}
+                      onChange={(e) => handleGeolocationChange('longitude', e.target.value)}
+                      placeholder="Ex: 9.4544"
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <button
+                      type="button"
+                      className="btn-secondary geolocation-btn"
+                      onClick={getCurrentLocation}
+                    >
+                      <Navigation size={16} />
+                      Utiliser ma position actuelle
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instruments de mesure */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Settings size={20} />
+                  Instruments de mesure (5 maximum)
+                </h3>
+                <div className="instruments-container">
+                  {nouvelleEntreprise.instruments.map((instrument, index) => (
+                    <div key={index} className="instrument-card">
+                      <h4>Instrument {index + 1}</h4>
+                      <div className="instrument-grid">
+                        <div className="form-group">
+                          <label>Type d'instrument</label>
+                          <select
+                            value={instrument.type}
+                            onChange={(e) => handleInstrumentChange(index, 'type', e.target.value)}
+                          >
+                            <option value="">Sélectionner un type</option>
+                            {typesInstruments.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label>Marque</label>
+                          <input
+                            type="text"
+                            value={instrument.marque}
+                            onChange={(e) => handleInstrumentChange(index, 'marque', e.target.value)}
+                            placeholder="Ex: Mettler Toledo"
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Modèle</label>
+                          <input
+                            type="text"
+                            value={instrument.modele}
+                            onChange={(e) => handleInstrumentChange(index, 'modele', e.target.value)}
+                            placeholder="Ex: XS204"
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>Numéro de série</label>
+                          <input
+                            type="text"
+                            value={instrument.numeroSerie}
+                            onChange={(e) => handleInstrumentChange(index, 'numeroSerie', e.target.value)}
+                            placeholder="Ex: 123456789"
+                          />
+                        </div>
+
+                        <div className="form-group full-width">
+                          <label>Localisation dans l'entreprise</label>
+                          <input
+                            type="text"
+                            value={instrument.localisation}
+                            onChange={(e) => handleInstrumentChange(index, 'localisation', e.target.value)}
+                            placeholder="Ex: Caisse principale, Laboratoire, etc."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
                   Annuler
                 </button>
-                <button type="submit" className="btn-save-enterprise">
+                <button type="submit" className="btn-primary">
                   <Save size={20} />
                   Enregistrer
                 </button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield, Plus, Search, Filter } from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield } from 'lucide-react';
 
 interface Agent {
   id: number;
@@ -64,7 +64,6 @@ interface NouvelAgent {
 
 const Agents: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
 
   const [agents, setAgents] = useState<Agent[]>([
@@ -221,13 +220,12 @@ const Agents: React.FC = () => {
 
   const roles = ['inspecteur', 'superviseur', 'admin', 'technicien_qualite', 'technicien_metrologie'];
   const zones = ['Libreville Nord', 'Libreville Sud', 'Libreville Centre', 'Port-Gentil', 'Franceville', 'Oyem', 'Lambaréné', 'Mouila', 'Tchibanga', 'Toutes zones'];
+  const nationalites = ['Gabonaise', 'Française', 'Camerounaise', 'Équato-guinéenne', 'Congolaise', 'Tchadienne', 'Centrafricaine', 'Autre'];
+  const niveauxEtude = ['Baccalauréat', 'BTS/DUT', 'Licence', 'Master', 'Doctorat', 'École d\'ingénieur', 'Formation professionnelle'];
+  const typesContrat = ['cdi', 'cdd', 'stage', 'consultant'];
 
   const filteredAgents = agents.filter(agent => {
-    const matchesSearch = agent.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === '' || agent.role === selectedRole;
-    return matchesSearch && matchesRole;
+    return selectedRole === '' || agent.role === selectedRole;
   });
 
   const getRoleLabel = (role: string) => {
@@ -263,10 +261,30 @@ const Agents: React.FC = () => {
 
   const getStatutClass = (statut: string) => {
     switch (statut) {
-      case 'actif': return 'status-actif';
-      case 'inactif': return 'status-inactif';
-      case 'conge': return 'status-conge';
+      case 'actif': return 'actif';
+      case 'inactif': return 'inactif';
+      case 'conge': return 'conge';
       default: return '';
+    }
+  };
+
+  const getContratLabel = (type: string) => {
+    switch (type) {
+      case 'cdi': return 'CDI';
+      case 'cdd': return 'CDD';
+      case 'stage': return 'Stage';
+      case 'consultant': return 'Consultant';
+      default: return type;
+    }
+  };
+
+  const getSituationLabel = (situation: string) => {
+    switch (situation) {
+      case 'celibataire': return 'Célibataire';
+      case 'marie': return 'Marié(e)';
+      case 'divorce': return 'Divorcé(e)';
+      case 'veuf': return 'Veuf/Veuve';
+      default: return situation;
     }
   };
 
@@ -277,19 +295,87 @@ const Agents: React.FC = () => {
     }));
   };
 
+  const handleArrayChange = (field: 'diplomes' | 'certifications', index: number, value: string) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const addArrayItem = (field: 'diplomes' | 'certifications') => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: [...prev[field], '']
+    }));
+  };
+
+  const removeArrayItem = (field: 'diplomes' | 'certifications', index: number) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleGeolocationChange = (field: 'latitude' | 'longitude', value: string) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      geolocalisation: {
+        ...prev.geolocalisation,
+        [field]: value
+      }
+    }));
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setNouvelAgent(prev => ({
+            ...prev,
+            geolocalisation: {
+              latitude: position.coords.latitude.toString(),
+              longitude: position.coords.longitude.toString()
+            }
+          }));
+        },
+        (error) => {
+          alert('Erreur lors de la récupération de la géolocalisation: ' + error.message);
+        }
+      );
+    } else {
+      alert('La géolocalisation n\'est pas supportée par ce navigateur.');
+    }
+  };
+
+  const generateMatricule = () => {
+    const year = new Date().getFullYear();
+    const randomNum = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    const matricule = `AG${year}${randomNum}`;
+    setNouvelAgent(prev => ({ ...prev, numeroMatricule: matricule }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation basique
     if (!nouvelAgent.nom || !nouvelAgent.prenom || !nouvelAgent.email || !nouvelAgent.role) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
+    // Vérifier si l'email existe déjà
     if (agents.some(agent => agent.email === nouvelAgent.email)) {
       alert('Un agent avec cet email existe déjà');
       return;
     }
 
+    // Vérifier si le matricule existe déjà
+    if (nouvelAgent.numeroMatricule && agents.some(agent => agent.numeroMatricule === nouvelAgent.numeroMatricule)) {
+      alert('Un agent avec ce matricule existe déjà');
+      return;
+    }
+
+    // Ajouter le nouvel agent
     const newId = Math.max(...agents.map(a => a.id)) + 1;
     const newAgent: Agent = {
       id: newId,
@@ -325,6 +411,7 @@ const Agents: React.FC = () => {
 
     setAgents(prev => [...prev, newAgent]);
     
+    // Réinitialiser le formulaire
     setNouvelAgent({
       nom: '',
       prenom: '',
@@ -393,134 +480,113 @@ const Agents: React.FC = () => {
     total: agents.length,
     actifs: agents.filter(a => a.statut === 'actif').length,
     enConge: agents.filter(a => a.statut === 'conge').length,
+    inactifs: agents.filter(a => a.statut === 'inactif').length,
     controlesTotal: agents.reduce((sum, agent) => sum + agent.controlesEnCours, 0)
   };
 
   return (
-    <div className="agents-page">
-      {/* Header avec dégradé violet */}
-      <div className="agents-header">
-        <div className="header-content">
-          <div className="header-title">
-            <div className="title-icon">
-              <Users size={32} />
-            </div>
-            <div className="title-text">
-              <h1>Gestion des Agents</h1>
-              <p>Équipe AGANOR et affectations</p>
-            </div>
-          </div>
-          <button className="btn-add-agent" onClick={() => setShowModal(true)}>
-            <UserPlus size={20} />
-            Nouvel agent
-          </button>
-        </div>
-      </div>
-
-      {/* Statistiques avec design moderne */}
-      <div className="agents-stats-modern">
-        <div className="stat-card-modern primary">
-          <div className="stat-number">{statsAgents.total}</div>
-          <div className="stat-label">Total agents</div>
-        </div>
-        <div className="stat-card-modern success">
-          <div className="stat-number">{statsAgents.actifs}</div>
-          <div className="stat-label">Agents actifs</div>
-        </div>
-        <div className="stat-card-modern warning">
-          <div className="stat-number">{statsAgents.enConge}</div>
-          <div className="stat-label">En congé</div>
-        </div>
-        <div className="stat-card-modern info">
-          <div className="stat-number">{statsAgents.controlesTotal}</div>
-          <div className="stat-label">Contrôles en cours</div>
-        </div>
-      </div>
-
-      {/* Filtres et recherche */}
-      <div className="agents-filters">
-        <div className="search-filter">
-          <div className="search-input-container">
-            <Search size={20} />
-            <input
-              type="text"
-              placeholder="Rechercher un agent..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input-modern"
-            />
+    <div className="page-container">
+      <div className="page-header">
+        <div className="page-title">
+          <Users size={32} />
+          <div>
+            <h1>Gestion des Agents</h1>
+            <p>Équipe AGANOR et affectations</p>
           </div>
         </div>
-        <div className="role-filter">
-          <Filter size={20} />
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="filter-select-modern"
-          >
-            <option value="">Tous les rôles</option>
-            {roles.map(role => (
-              <option key={role} value={role}>{getRoleLabel(role)}</option>
-            ))}
-          </select>
+        <button className="btn-primary" onClick={() => setShowModal(true)}>
+          <UserPlus size={20} />
+          Nouvel agent
+        </button>
+      </div>
+
+      {/* Statistiques des agents */}
+      <div className="agents-stats">
+        <div className="stat-item">
+          <span className="stat-number">{statsAgents.total}</span>
+          <span className="stat-label">Total agents</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{statsAgents.actifs}</span>
+          <span className="stat-label">Agents actifs</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{statsAgents.enConge}</span>
+          <span className="stat-label">En congé</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{statsAgents.controlesTotal}</span>
+          <span className="stat-label">Contrôles en cours</span>
         </div>
       </div>
 
-      {/* Grille des agents avec design moderne */}
-      <div className="agents-grid-modern">
+      <div className="filters-section">
+        <select
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">Tous les rôles</option>
+          {roles.map(role => (
+            <option key={role} value={role}>{getRoleLabel(role)}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="agents-grid">
         {filteredAgents.map(agent => (
-          <div key={agent.id} className="agent-card-modern">
-            <div className="agent-card-header">
-              <div className="agent-avatar-modern">
-                {agent.prenom.charAt(0)}{agent.nom.charAt(0)}
-              </div>
-              <div className="agent-status-indicator">
-                <span className={`status-dot ${getStatutClass(agent.statut)}`}></span>
-                <span className="status-text">{getStatutLabel(agent.statut)}</span>
-              </div>
+          <div key={agent.id} className="agent-card">
+            <div className="agent-avatar">
+              {agent.prenom.charAt(0)}{agent.nom.charAt(0)}
             </div>
             
-            <div className="agent-info-modern">
-              <h3 className="agent-name">{agent.prenom} {agent.nom}</h3>
-              <div className={`agent-role-badge ${getRoleClass(agent.role)}`}>
-                {getRoleLabel(agent.role)}
+            <div className="agent-info">
+              <div className="agent-header">
+                <h3>{agent.prenom} {agent.nom}</h3>
+                <span className={`role-badge ${getRoleClass(agent.role)}`}>
+                  {getRoleLabel(agent.role)}
+                </span>
               </div>
               
-              <div className="agent-details-modern">
-                <div className="detail-row">
+              <div className="agent-details">
+                <div className="detail-item">
                   <Mail size={16} />
                   <span>{agent.email}</span>
                 </div>
-                <div className="detail-row">
+                
+                <div className="detail-item">
                   <Phone size={16} />
                   <span>{agent.telephone}</span>
                 </div>
-                <div className="detail-row">
+                
+                <div className="detail-item">
                   <MapPin size={16} />
                   <span>{agent.zone}</span>
                 </div>
               </div>
               
-              <div className="agent-metrics">
-                <div className="metric-item">
-                  <div className="metric-number">{agent.controlesEnCours}</div>
-                  <div className="metric-label">Contrôles en cours</div>
+              <div className="agent-stats">
+                <div className="stat-item">
+                  <span className="stat-value">{agent.controlesEnCours}</span>
+                  <span className="stat-label">Contrôles en cours</span>
                 </div>
-                <div className="metric-item">
-                  <div className="metric-date">
+                <div className="stat-item">
+                  <span className="stat-value">
                     {new Date(agent.dernierControle).toLocaleDateString('fr-FR')}
-                  </div>
-                  <div className="metric-label">Dernier contrôle</div>
+                  </span>
+                  <span className="stat-label">Dernier contrôle</span>
                 </div>
+              </div>
+              
+              <div className="agent-status">
+                <span className={`status-indicator ${getStatutClass(agent.statut)}`}></span>
+                <span>{getStatutLabel(agent.statut)}</span>
               </div>
             </div>
             
-            <div className="agent-actions-modern">
-              <button className="btn-action secondary">Modifier</button>
-              <button 
-                className="btn-action primary" 
-                disabled={agent.statut !== 'actif'}
-              >
+            <div className="agent-actions">
+              <button className="btn-secondary">Modifier</button>
+              <button className="btn-primary" disabled={agent.statut !== 'actif'}>
                 Affecter contrôle
               </button>
             </div>
@@ -530,23 +596,24 @@ const Agents: React.FC = () => {
 
       {/* Modal pour ajouter un nouvel agent */}
       {showModal && (
-        <div className="modal-overlay-modern">
-          <div className="modal-content-modern">
-            <div className="modal-header-modern">
+        <div className="modal-overlay">
+          <div className="modal-content large-modal">
+            <div className="modal-header">
               <h2>Nouvel Agent AGANOR</h2>
-              <button className="modal-close-modern" onClick={handleCloseModal}>
+              <button className="modal-close" onClick={handleCloseModal}>
                 <X size={24} />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="modal-form-modern">
-              <div className="form-section-modern">
-                <h3 className="section-title-modern">
+            <form onSubmit={handleSubmit} className="modal-form">
+              {/* Informations personnelles */}
+              <div className="form-section">
+                <h3 className="section-title">
                   <User size={20} />
                   Informations personnelles
                 </h3>
-                <div className="form-grid-modern">
-                  <div className="form-group-modern">
+                <div className="form-grid">
+                  <div className="form-group">
                     <label htmlFor="nom">Nom *</label>
                     <input
                       type="text"
@@ -558,7 +625,7 @@ const Agents: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-modern">
+                  <div className="form-group">
                     <label htmlFor="prenom">Prénom *</label>
                     <input
                       type="text"
@@ -570,7 +637,87 @@ const Agents: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-modern">
+                  <div className="form-group">
+                    <label htmlFor="dateNaissance">Date de naissance</label>
+                    <input
+                      type="date"
+                      id="dateNaissance"
+                      value={nouvelAgent.dateNaissance}
+                      onChange={(e) => handleInputChange('dateNaissance', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="lieuNaissance">Lieu de naissance</label>
+                    <input
+                      type="text"
+                      id="lieuNaissance"
+                      value={nouvelAgent.lieuNaissance}
+                      onChange={(e) => handleInputChange('lieuNaissance', e.target.value)}
+                      placeholder="Ex: Libreville"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="nationalite">Nationalité</label>
+                    <select
+                      id="nationalite"
+                      value={nouvelAgent.nationalite}
+                      onChange={(e) => handleInputChange('nationalite', e.target.value)}
+                    >
+                      {nationalites.map(nat => (
+                        <option key={nat} value={nat}>{nat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="situationMatrimoniale">Situation matrimoniale</label>
+                    <select
+                      id="situationMatrimoniale"
+                      value={nouvelAgent.situationMatrimoniale}
+                      onChange={(e) => handleInputChange('situationMatrimoniale', e.target.value)}
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="celibataire">Célibataire</option>
+                      <option value="marie">Marié(e)</option>
+                      <option value="divorce">Divorcé(e)</option>
+                      <option value="veuf">Veuf/Veuve</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="nombreEnfants">Nombre d'enfants</label>
+                    <input
+                      type="number"
+                      id="nombreEnfants"
+                      min="0"
+                      value={nouvelAgent.nombreEnfants}
+                      onChange={(e) => handleInputChange('nombreEnfants', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label htmlFor="adresse">Adresse</label>
+                    <input
+                      type="text"
+                      id="adresse"
+                      value={nouvelAgent.adresse}
+                      onChange={(e) => handleInputChange('adresse', e.target.value)}
+                      placeholder="Adresse complète"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Phone size={20} />
+                  Informations de contact
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
                     <label htmlFor="email">Email *</label>
                     <input
                       type="email"
@@ -582,7 +729,7 @@ const Agents: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group-modern">
+                  <div className="form-group">
                     <label htmlFor="telephone">Téléphone</label>
                     <input
                       type="tel"
@@ -592,8 +739,38 @@ const Agents: React.FC = () => {
                       placeholder="+241 XX XX XX XX"
                     />
                   </div>
+                </div>
+              </div>
 
-                  <div className="form-group-modern">
+              {/* Informations professionnelles */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Shield size={20} />
+                  Informations professionnelles
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="numeroMatricule">Numéro matricule</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        id="numeroMatricule"
+                        value={nouvelAgent.numeroMatricule}
+                        onChange={(e) => handleInputChange('numeroMatricule', e.target.value)}
+                        placeholder="Ex: AG2025001"
+                      />
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={generateMatricule}
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        Générer
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
                     <label htmlFor="role">Rôle *</label>
                     <select
                       id="role"
@@ -608,7 +785,7 @@ const Agents: React.FC = () => {
                     </select>
                   </div>
 
-                  <div className="form-group-modern">
+                  <div className="form-group">
                     <label htmlFor="zone">Zone d'intervention</label>
                     <select
                       id="zone"
@@ -621,14 +798,216 @@ const Agents: React.FC = () => {
                       ))}
                     </select>
                   </div>
+
+                  <div className="form-group">
+                    <label htmlFor="statut">Statut</label>
+                    <select
+                      id="statut"
+                      value={nouvelAgent.statut}
+                      onChange={(e) => handleInputChange('statut', e.target.value as any)}
+                    >
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                      <option value="conge">En congé</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="dateEmbauche">Date d'embauche</label>
+                    <input
+                      type="date"
+                      id="dateEmbauche"
+                      value={nouvelAgent.dateEmbauche}
+                      onChange={(e) => handleInputChange('dateEmbauche', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="typeContrat">Type de contrat</label>
+                    <select
+                      id="typeContrat"
+                      value={nouvelAgent.typeContrat}
+                      onChange={(e) => handleInputChange('typeContrat', e.target.value)}
+                    >
+                      <option value="">Sélectionner</option>
+                      {typesContrat.map(type => (
+                        <option key={type} value={type}>{getContratLabel(type)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {nouvelAgent.typeContrat === 'cdd' && (
+                    <div className="form-group">
+                      <label htmlFor="dateFinContrat">Date fin de contrat</label>
+                      <input
+                        type="date"
+                        id="dateFinContrat"
+                        value={nouvelAgent.dateFinContrat}
+                        onChange={(e) => handleInputChange('dateFinContrat', e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label htmlFor="salaire">Salaire (XAF)</label>
+                    <input
+                      type="number"
+                      id="salaire"
+                      value={nouvelAgent.salaire}
+                      onChange={(e) => handleInputChange('salaire', e.target.value)}
+                      placeholder="Ex: 500000"
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label htmlFor="superviseur">Superviseur</label>
+                    <input
+                      type="text"
+                      id="superviseur"
+                      value={nouvelAgent.superviseur}
+                      onChange={(e) => handleInputChange('superviseur', e.target.value)}
+                      placeholder="Nom du superviseur direct"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="modal-actions-modern">
-                <button type="button" className="btn-cancel-modern" onClick={handleCloseModal}>
+              {/* Formation et qualifications */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Calendar size={20} />
+                  Formation et qualifications
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group full-width">
+                    <label htmlFor="niveauEtude">Niveau d'étude</label>
+                    <select
+                      id="niveauEtude"
+                      value={nouvelAgent.niveauEtude}
+                      onChange={(e) => handleInputChange('niveauEtude', e.target.value)}
+                    >
+                      <option value="">Sélectionner</option>
+                      {niveauxEtude.map(niveau => (
+                        <option key={niveau} value={niveau}>{niveau}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Diplômes</label>
+                    {nouvelAgent.diplomes.map((diplome, index) => (
+                      <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input
+                          type="text"
+                          value={diplome}
+                          onChange={(e) => handleArrayChange('diplomes', index, e.target.value)}
+                          placeholder="Ex: Master en Métrologie"
+                          style={{ flex: 1 }}
+                        />
+                        {nouvelAgent.diplomes.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => removeArrayItem('diplomes', index)}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => addArrayItem('diplomes')}
+                      style={{ marginTop: '0.5rem' }}
+                    >
+                      Ajouter un diplôme
+                    </button>
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Certifications</label>
+                    {nouvelAgent.certifications.map((certification, index) => (
+                      <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input
+                          type="text"
+                          value={certification}
+                          onChange={(e) => handleArrayChange('certifications', index, e.target.value)}
+                          placeholder="Ex: Certification ISO 9001"
+                          style={{ flex: 1 }}
+                        />
+                        {nouvelAgent.certifications.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => removeArrayItem('certifications', index)}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => addArrayItem('certifications')}
+                      style={{ marginTop: '0.5rem' }}
+                    >
+                      Ajouter une certification
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Géolocalisation */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Navigation size={20} />
+                  Géolocalisation (optionnel)
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="latitude">Latitude</label>
+                    <input
+                      type="number"
+                      id="latitude"
+                      step="any"
+                      value={nouvelAgent.geolocalisation.latitude}
+                      onChange={(e) => handleGeolocationChange('latitude', e.target.value)}
+                      placeholder="Ex: 0.3901"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="longitude">Longitude</label>
+                    <input
+                      type="number"
+                      id="longitude"
+                      step="any"
+                      value={nouvelAgent.geolocalisation.longitude}
+                      onChange={(e) => handleGeolocationChange('longitude', e.target.value)}
+                      placeholder="Ex: 9.4544"
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <button
+                      type="button"
+                      className="btn-secondary geolocation-btn"
+                      onClick={getCurrentLocation}
+                    >
+                      <Navigation size={16} />
+                      Utiliser ma position actuelle
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
                   Annuler
                 </button>
-                <button type="submit" className="btn-save-modern">
+                <button type="submit" className="btn-primary">
                   <Save size={20} />
                   Enregistrer l'agent
                 </button>
