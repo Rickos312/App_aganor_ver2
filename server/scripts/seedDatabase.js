@@ -53,6 +53,7 @@ async function seedDatabase() {
         certifications: JSON.stringify(['ISO 17025', 'Management Qualité', 'Audit Interne']),
         salaire: 950000,
         type_contrat: 'cdi',
+        superviseur: null,
         latitude: -0.7193,
         longitude: 8.7815
       },
@@ -102,6 +103,7 @@ async function seedDatabase() {
         certifications: JSON.stringify(['Gestion de Projet', 'Administration Système']),
         salaire: 850000,
         type_contrat: 'cdi',
+        superviseur: null,
         latitude: 0.3901,
         longitude: 9.4544
       },
@@ -153,7 +155,7 @@ async function seedDatabase() {
         agent.date_naissance, agent.lieu_naissance, agent.nationalite,
         agent.situation_matrimoniale, agent.nombre_enfants, agent.niveau_etude,
         agent.diplomes, agent.certifications, agent.salaire, agent.type_contrat,
-        agent.superviseur, agent.latitude, agent.longitude, agent.password_hash
+        agent.superviseur || null, agent.latitude, agent.longitude, agent.password_hash
       ]);
     }
 
@@ -340,7 +342,7 @@ async function seedDatabase() {
         controle.date_planifiee, controle.date_realisation || null,
         controle.heure_debut, controle.heure_fin || null,
         controle.statut, controle.resultat || null, controle.observations || null,
-        controle.priorite, controle.progression
+        controle.priorite || null, controle.progression || null
       ]);
     }
 
