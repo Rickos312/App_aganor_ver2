@@ -21,7 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3003;
 
 // Middleware
 app.use(cors({
@@ -74,11 +74,24 @@ async function startServer() {
     await initDatabase();
     console.log('✅ Base de données initialisée');
     
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Serveur AGANOR démarré sur le port ${PORT}`);
       console.log(`📊 API disponible sur http://localhost:${PORT}/api`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
     });
+
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Le port ${PORT} est déjà utilisé. Essayez un autre port ou arrêtez le processus qui utilise ce port.`);
+        console.error(`💡 Pour changer le port, modifiez la variable PORT dans votre fichier .env`);
+        process.exit(1);
+      } else {
+        console.error('❌ Erreur du serveur:', error);
+        process.exit(1);
+      }
+    });
+
   } catch (error) {
     console.error('❌ Erreur lors du démarrage du serveur:', error);
     process.exit(1);
