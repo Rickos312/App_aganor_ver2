@@ -6,6 +6,7 @@ import Entreprises from './components/Entreprises';
 import Controles from './components/Controles';
 import Facturation from './components/Facturation';
 import Agents from './components/Agents';
+import Parametres from './components/Parametres';
 import './styles/globals.css';
 
 type ModuleType = 'dashboard' | 'entreprises' | 'controles' | 'facturation' | 'agents' | 'parametres';
@@ -30,6 +31,8 @@ function App() {
         return <Facturation />;
       case 'agents':
         return <Agents />;
+      case 'parametres':
+        return <Parametres />;
       default:
         return <Dashboard />;
     }
