@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Database, Download, Upload, RefreshCw, Trash2, Users, Building2, CheckSquare, CreditCard, BarChart3, AlertTriangle, Check, X, HardDrive, Shield, Zap, FileText, Globe } from 'lucide-react';
+import { Settings, Database, Download, Upload, RefreshCw, Trash2, Users, Building2, CheckSquare, CreditCard, BarChart3, AlertTriangle, Check, X, HardDrive, Shield, Zap, FileText, Globe, Calendar, Navigation, Wrench } from 'lucide-react';
 
 interface DatabaseStats {
   tableName: string;
@@ -33,7 +33,7 @@ const Parametres: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(null);
   const [operationStatus, setOperationStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
 
-  // Modules du système organisés en cercle
+  // Modules du système organisés en cercle - adaptés pour AGANOR
   const systemModules: SystemModule[] = [
     {
       id: 'database',
@@ -45,7 +45,9 @@ const Parametres: React.FC = () => {
         'Statistiques en temps réel',
         'Optimisation automatique',
         'Monitoring des performances',
-        'Gestion des index'
+        'Gestion des index',
+        'Sauvegarde automatique',
+        'Restauration de données'
       ],
       position: 1
     },
@@ -53,13 +55,15 @@ const Parametres: React.FC = () => {
       id: 'calibration',
       title: 'Étalonnage',
       description: 'Procès verbal d\'étalonnage et fiches d\'interventions',
-      icon: Settings,
+      icon: Wrench,
       color: 'orange',
       features: [
         'Procès verbal d\'étalonnage',
         'Appareils étalons',
         'Fiches d\'interventions modélisables',
-        'Aucune limite en nombre d\'appareils'
+        'Aucune limite en nombre d\'appareils',
+        'Certificats d\'étalonnage',
+        'Traçabilité métrologique'
       ],
       position: 2
     },
@@ -72,7 +76,10 @@ const Parametres: React.FC = () => {
       features: [
         'Gestion physique du parc d\'instruments',
         'Sorties internes ou externes',
-        'Gestion de l\'état de l\'appareil'
+        'Gestion de l\'état de l\'appareil',
+        'Suivi des mouvements',
+        'Inventaire automatisé',
+        'Géolocalisation des équipements'
       ],
       position: 3
     },
@@ -80,13 +87,15 @@ const Parametres: React.FC = () => {
       id: 'planning',
       title: 'Planning',
       description: 'Appel au planning et gestion des retards',
-      icon: BarChart3,
+      icon: Calendar,
       color: 'blue',
       features: [
         'Appel au planning',
         'Gestion des appareils en retard',
         'Planification automatique',
-        'Alertes et notifications'
+        'Alertes et notifications',
+        'Calendrier interactif',
+        'Optimisation des tournées'
       ],
       position: 4
     },
@@ -102,7 +111,8 @@ const Parametres: React.FC = () => {
         'États sous Word',
         'Recherche multi-critères',
         'Indicateurs statistiques',
-        'Budget Métrologie'
+        'Budget Métrologie',
+        'Tableaux de bord'
       ],
       position: 5
     }
@@ -281,19 +291,24 @@ const Parametres: React.FC = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div className="page-title">
-          <Settings size={32} />
-          <div>
-            <h1>AGANOR Système</h1>
-            <p>Maîtrise de la Gestion des équipements de mesure</p>
+    <div className="parametres-page">
+      {/* Header moderne */}
+      <div className="parametres-header">
+        <div className="header-content">
+          <div className="header-title">
+            <div className="title-icon">
+              <Settings size={32} />
+            </div>
+            <div className="title-text">
+              <h1>AGANOR Système</h1>
+              <p>Maîtrise de la Gestion des équipements de mesure</p>
+            </div>
           </div>
-        </div>
-        <div className="header-stats">
-          <div className="stat-item">
-            <span className="stat-number">{getTotalRecords()}</span>
-            <span className="stat-label">Total enregistrements</span>
+          <div className="header-stats">
+            <div className="stat-item">
+              <span className="stat-number">{getTotalRecords()}</span>
+              <span className="stat-label">Total enregistrements</span>
+            </div>
           </div>
         </div>
       </div>
@@ -314,7 +329,7 @@ const Parametres: React.FC = () => {
               <Settings size={48} />
             </div>
             <h2>AGANOR</h2>
-            <p>Maîtrise de la Gestion des équipements de mesure</p>
+            <p className="hub-subtitle">Maîtrise de la Gestion des équipements de mesure</p>
             <div className="hub-tagline">
               Se limiter à l'utile pour gagner en efficience
             </div>
@@ -325,7 +340,7 @@ const Parametres: React.FC = () => {
           {systemModules.map((module, index) => {
             const Icon = module.icon;
             const angle = (index * 72) - 90; // 360/5 = 72 degrés entre chaque module
-            const radius = 280;
+            const radius = 300;
             const x = Math.cos(angle * Math.PI / 180) * radius;
             const y = Math.sin(angle * Math.PI / 180) * radius;
             
