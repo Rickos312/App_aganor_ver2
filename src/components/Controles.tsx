@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Calendar, CheckSquare, Clock, AlertCircle } from 'lucide-react';
+import PlanificationControle from './PlanificationControle';
 
 const Controles: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'planifies' | 'en_cours' | 'termines'>('planifies');
+  const [showPlanification, setShowPlanification] = useState(false);
 
   const controles = {
     planifies: [
@@ -69,7 +71,7 @@ const Controles: React.FC = () => {
             <p>Suivi des inspections et contrôles métrologiques</p>
           </div>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => setShowPlanification(true)}>
           <Calendar size={20} />
           Planifier un contrôle
         </button>
@@ -172,6 +174,11 @@ const Controles: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de planification */}
+      {showPlanification && (
+        <PlanificationControle onClose={() => setShowPlanification(false)} />
+      )}
     </div>
   );
 };
