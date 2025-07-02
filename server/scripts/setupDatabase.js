@@ -1,9 +1,22 @@
 import { initDatabase } from '../database/init.js';
 import seedDatabase from './seedDatabase.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function setupDatabase() {
   try {
     console.log('🚀 Configuration de la base de données AGANOR...');
+    
+    // Supprimer la base de données existante pour éviter les conflits
+    const dbPath = path.join(__dirname, '../../database.sqlite');
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+      console.log('🗑️  Base de données existante supprimée');
+    }
     
     // Initialiser la structure de la base de données
     await initDatabase();
