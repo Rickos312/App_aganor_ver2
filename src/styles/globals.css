@@ -1518,6 +1518,9 @@ body {
   animation: fadeIn 0.5s ease-out;
 }
 
+/* Import du CSS spécifique aux agents */
+@import url('./agents.css');
+
 /* Responsive */
 @media (max-width: 768px) {
   .app-header {
