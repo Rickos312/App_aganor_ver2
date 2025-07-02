@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Database, Download, Upload, RefreshCw, Trash2, Users, Building2, CheckSquare, CreditCard, BarChart3, AlertTriangle, Check, X, HardDrive, Shield, Zap, FileText, Globe } from 'lucide-react';
+import { Settings, Database, Download, Upload, RefreshCw, Trash2, Users, Building2, CheckSquare, CreditCard, BarChart3, AlertTriangle, Check, X } from 'lucide-react';
 
 interface DatabaseStats {
   tableName: string;
@@ -17,96 +17,11 @@ interface BackupFile {
   type: 'auto' | 'manual';
 }
 
-interface SystemModule {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<any>;
-  color: string;
-  features: string[];
-  position: number;
-}
-
 const Parametres: React.FC = () => {
-  const [activeModule, setActiveModule] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<'database' | 'backup' | 'import' | 'maintenance'>('database');
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(null);
   const [operationStatus, setOperationStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
-
-  // Modules du système organisés en cercle
-  const systemModules: SystemModule[] = [
-    {
-      id: 'database',
-      title: 'Gestion des données',
-      description: 'Base de données, statistiques et optimisation',
-      icon: Database,
-      color: 'red',
-      features: [
-        'Statistiques en temps réel',
-        'Optimisation automatique',
-        'Monitoring des performances',
-        'Gestion des index'
-      ],
-      position: 1
-    },
-    {
-      id: 'calibration',
-      title: 'Étalonnage',
-      description: 'Procès verbal d\'étalonnage et fiches d\'interventions',
-      icon: Settings,
-      color: 'orange',
-      features: [
-        'Procès verbal d\'étalonnage',
-        'Appareils étalons',
-        'Fiches d\'interventions modélisables',
-        'Aucune limite en nombre d\'appareils'
-      ],
-      position: 2
-    },
-    {
-      id: 'inventory',
-      title: 'Entrées - Sorties',
-      description: 'Gestion physique du parc d\'instruments',
-      icon: Globe,
-      color: 'green',
-      features: [
-        'Gestion physique du parc d\'instruments',
-        'Sorties internes ou externes',
-        'Gestion de l\'état de l\'appareil'
-      ],
-      position: 3
-    },
-    {
-      id: 'planning',
-      title: 'Planning',
-      description: 'Appel au planning et gestion des retards',
-      icon: BarChart3,
-      color: 'blue',
-      features: [
-        'Appel au planning',
-        'Gestion des appareils en retard',
-        'Planification automatique',
-        'Alertes et notifications'
-      ],
-      position: 4
-    },
-    {
-      id: 'exploitation',
-      title: 'Exploitation',
-      description: 'Rapports, exports et indicateurs statistiques',
-      icon: FileText,
-      color: 'purple',
-      features: [
-        'Information par e-mail',
-        'Export Excel',
-        'États sous Word',
-        'Recherche multi-critères',
-        'Indicateurs statistiques',
-        'Budget Métrologie'
-      ],
-      position: 5
-    }
-  ];
 
   // Statistiques des bases de données
   const [databaseStats, setDatabaseStats] = useState<DatabaseStats[]>([
@@ -174,11 +89,20 @@ const Parametres: React.FC = () => {
     }
   ]);
 
+  const sections = [
+    { key: 'database' as const, label: 'Base de données', icon: Database },
+    { key: 'backup' as const, label: 'Sauvegardes', icon: Download },
+    { key: 'import' as const, label: 'Import/Export', icon: Upload },
+    { key: 'maintenance' as const, label: 'Maintenance', icon: RefreshCw }
+  ];
+
   const handleRefreshStats = async () => {
     setIsLoading(true);
     try {
+      // Simulation d'appel API pour récupérer les statistiques
       await new Promise(resolve => setTimeout(resolve, 1500));
       
+      // Mise à jour simulée des statistiques
       setDatabaseStats(prev => prev.map(stat => ({
         ...stat,
         lastUpdate: new Date().toISOString().replace('T', ' ').substring(0, 19)
@@ -236,6 +160,7 @@ const Parametres: React.FC = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 3000));
       
+      // Réinitialisation simulée des statistiques
       setDatabaseStats(prev => prev.map(stat => ({
         ...stat,
         count: 0,
@@ -269,15 +194,12 @@ const Parametres: React.FC = () => {
     return databaseStats.reduce((total, stat) => total + stat.count, 0);
   };
 
-  const getModuleColorClass = (color: string) => {
-    switch (color) {
-      case 'red': return 'module-red';
-      case 'orange': return 'module-orange';
-      case 'green': return 'module-green';
-      case 'blue': return 'module-blue';
-      case 'purple': return 'module-purple';
-      default: return 'module-gray';
-    }
+  const getBackupTypeLabel = (type: string) => {
+    return type === 'auto' ? 'Automatique' : 'Manuelle';
+  };
+
+  const getBackupTypeClass = (type: string) => {
+    return type === 'auto' ? 'backup-auto' : 'backup-manual';
   };
 
   return (
@@ -286,8 +208,8 @@ const Parametres: React.FC = () => {
         <div className="page-title">
           <Settings size={32} />
           <div>
-            <h1>AGANOR Système</h1>
-            <p>Maîtrise de la Gestion des équipements de mesure</p>
+            <h1>Paramètres Système</h1>
+            <p>Gestion des bases de données et configuration AGANOR</p>
           </div>
         </div>
         <div className="header-stats">
@@ -306,273 +228,334 @@ const Parametres: React.FC = () => {
         </div>
       )}
 
-      {/* Interface circulaire principale */}
-      <div className="circular-interface">
-        <div className="central-hub">
-          <div className="hub-content">
-            <div className="hub-logo">
-              <Settings size={48} />
-            </div>
-            <h2>AGANOR</h2>
-            <p>Maîtrise de la Gestion des équipements de mesure</p>
-            <div className="hub-tagline">
-              Se limiter à l'utile pour gagner en efficience
-            </div>
-          </div>
-        </div>
-
-        <div className="modules-circle">
-          {systemModules.map((module, index) => {
-            const Icon = module.icon;
-            const angle = (index * 72) - 90; // 360/5 = 72 degrés entre chaque module
-            const radius = 280;
-            const x = Math.cos(angle * Math.PI / 180) * radius;
-            const y = Math.sin(angle * Math.PI / 180) * radius;
-            
-            return (
-              <div
-                key={module.id}
-                className={`module-segment ${getModuleColorClass(module.color)} ${activeModule === module.id ? 'active' : ''}`}
-                style={{
-                  transform: `translate(${x}px, ${y}px)`,
-                }}
-                onClick={() => setActiveModule(activeModule === module.id ? null : module.id)}
-              >
-                <div className="module-number">{module.position.toString().padStart(2, '0')}</div>
-                <div className="module-icon">
-                  <Icon size={32} />
-                </div>
-                <div className="module-content">
-                  <h3>{module.title}</h3>
-                  <p>{module.description}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* Navigation des sections */}
+      <div className="tabs-container">
+        {sections.map(section => {
+          const Icon = section.icon;
+          return (
+            <button
+              key={section.key}
+              className={`tab ${activeSection === section.key ? 'active' : ''}`}
+              onClick={() => setActiveSection(section.key)}
+            >
+              <Icon size={20} />
+              <span>{section.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Détails du module sélectionné */}
-      {activeModule && (
-        <div className="module-details">
-          {(() => {
-            const module = systemModules.find(m => m.id === activeModule);
-            if (!module) return null;
-            const Icon = module.icon;
-            
-            return (
-              <div className={`module-detail-card ${getModuleColorClass(module.color)}`}>
-                <div className="module-detail-header">
-                  <div className="module-detail-icon">
-                    <Icon size={40} />
+      <div className="parametres-content">
+        {/* Section Base de données */}
+        {activeSection === 'database' && (
+          <div className="database-section">
+            <div className="section-header">
+              <h2>État de la base de données</h2>
+              <button 
+                className="btn-secondary" 
+                onClick={handleRefreshStats}
+                disabled={isLoading}
+              >
+                <RefreshCw size={16} className={isLoading ? 'spinning' : ''} />
+                Actualiser
+              </button>
+            </div>
+
+            <div className="database-stats-grid">
+              {databaseStats.map(stat => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.tableName} className={`database-stat-card ${stat.color}`}>
+                    <div className="stat-icon">
+                      <Icon size={32} />
+                    </div>
+                    <div className="stat-content">
+                      <h3>{stat.count.toLocaleString()}</h3>
+                      <p>{stat.displayName}</p>
+                      <div className="stat-meta">
+                        <span>Dernière MAJ:</span>
+                        <span>{new Date(stat.lastUpdate).toLocaleString('fr-FR')}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3>{module.title}</h3>
-                    <p>{module.description}</p>
+                );
+              })}
+            </div>
+
+            <div className="database-info">
+              <h3>Informations système</h3>
+              <div className="info-grid">
+                <div className="info-item">
+                  <span className="info-label">Type de base:</span>
+                  <span className="info-value">SQLite 3</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Taille totale:</span>
+                  <span className="info-value">2.4 MB</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Dernière sauvegarde:</span>
+                  <span className="info-value">Aujourd'hui à 14:30</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Statut:</span>
+                  <span className="info-value status-healthy">Opérationnelle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section Sauvegardes */}
+        {activeSection === 'backup' && (
+          <div className="backup-section">
+            <div className="section-header">
+              <h2>Gestion des sauvegardes</h2>
+              <button 
+                className="btn-primary" 
+                onClick={handleCreateBackup}
+                disabled={isLoading}
+              >
+                <Download size={16} />
+                Créer une sauvegarde
+              </button>
+            </div>
+
+            <div className="backup-settings">
+              <h3>Configuration automatique</h3>
+              <div className="settings-grid">
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" defaultChecked />
+                    Sauvegarde automatique quotidienne
+                  </label>
+                  <span className="setting-description">À 18:00 chaque jour</span>
+                </div>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" defaultChecked />
+                    Conserver les sauvegardes pendant 30 jours
+                  </label>
+                  <span className="setting-description">Suppression automatique après 30 jours</span>
+                </div>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" />
+                    Notification par email
+                  </label>
+                  <span className="setting-description">Recevoir un email après chaque sauvegarde</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="backup-files">
+              <h3>Fichiers de sauvegarde</h3>
+              <div className="backup-list">
+                {backupFiles.map(backup => (
+                  <div key={backup.name} className="backup-item">
+                    <div className="backup-info">
+                      <div className="backup-name">
+                        <span>{backup.name}</span>
+                        <span className={`backup-type ${getBackupTypeClass(backup.type)}`}>
+                          {getBackupTypeLabel(backup.type)}
+                        </span>
+                      </div>
+                      <div className="backup-meta">
+                        <span>{new Date(backup.date).toLocaleString('fr-FR')}</span>
+                        <span>•</span>
+                        <span>{backup.size}</span>
+                      </div>
+                    </div>
+                    <div className="backup-actions">
+                      <button className="btn-icon" title="Télécharger">
+                        <Download size={16} />
+                      </button>
+                      <button 
+                        className="btn-icon danger" 
+                        title="Supprimer"
+                        onClick={() => setShowConfirmDialog(backup.name)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                  <button 
-                    className="close-detail"
-                    onClick={() => setActiveModule(null)}
-                  >
-                    <X size={20} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section Import/Export */}
+        {activeSection === 'import' && (
+          <div className="import-export-section">
+            <div className="section-header">
+              <h2>Import et Export de données</h2>
+            </div>
+
+            <div className="import-export-grid">
+              <div className="import-export-card">
+                <h3>
+                  <Upload size={24} />
+                  Importer des données
+                </h3>
+                <p>Importer des données depuis un fichier CSV ou SQL</p>
+                <div className="import-options">
+                  <button className="btn-secondary">
+                    <Upload size={16} />
+                    Importer Agents (CSV)
+                  </button>
+                  <button className="btn-secondary">
+                    <Upload size={16} />
+                    Importer Entreprises (CSV)
+                  </button>
+                  <button className="btn-secondary">
+                    <Upload size={16} />
+                    Restaurer sauvegarde (SQL)
                   </button>
                 </div>
-                
-                <div className="module-features">
-                  <h4>Fonctionnalités disponibles :</h4>
-                  <ul>
-                    {module.features.map((feature, index) => (
-                      <li key={index}>
-                        <Check size={16} />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Contenu spécifique selon le module */}
-                {activeModule === 'database' && (
-                  <div className="database-section">
-                    <div className="section-actions">
-                      <button 
-                        className="btn-primary" 
-                        onClick={handleRefreshStats}
-                        disabled={isLoading}
-                      >
-                        <RefreshCw size={16} className={isLoading ? 'spinning' : ''} />
-                        Actualiser les données
-                      </button>
-                      <button 
-                        className="btn-secondary" 
-                        onClick={handleOptimizeDatabase}
-                        disabled={isLoading}
-                      >
-                        <Zap size={16} />
-                        Optimiser
-                      </button>
-                    </div>
-
-                    <div className="database-stats-grid">
-                      {databaseStats.map(stat => {
-                        const StatIcon = stat.icon;
-                        return (
-                          <div key={stat.tableName} className={`database-stat-card ${stat.color}`}>
-                            <div className="stat-icon">
-                              <StatIcon size={24} />
-                            </div>
-                            <div className="stat-content">
-                              <h3>{stat.count.toLocaleString()}</h3>
-                              <p>{stat.displayName}</p>
-                              <div className="stat-meta">
-                                <span>MAJ: {new Date(stat.lastUpdate).toLocaleString('fr-FR')}</span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="database-info">
-                      <h4>Informations système</h4>
-                      <div className="info-grid">
-                        <div className="info-item">
-                          <HardDrive size={16} />
-                          <span>SQLite 3 - 2.4 MB</span>
-                        </div>
-                        <div className="info-item">
-                          <Shield size={16} />
-                          <span>Statut: Opérationnelle</span>
-                        </div>
-                        <div className="info-item">
-                          <Download size={16} />
-                          <span>Dernière sauvegarde: Aujourd'hui 14:30</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeModule === 'planning' && (
-                  <div className="planning-section">
-                    <div className="section-actions">
-                      <button className="btn-primary">
-                        <BarChart3 size={16} />
-                        Voir le planning
-                      </button>
-                      <button className="btn-secondary">
-                        <AlertTriangle size={16} />
-                        Appareils en retard
-                      </button>
-                    </div>
-                    
-                    <div className="planning-stats">
-                      <div className="planning-stat">
-                        <span className="stat-number">15</span>
-                        <span className="stat-label">Contrôles planifiés</span>
-                      </div>
-                      <div className="planning-stat">
-                        <span className="stat-number">3</span>
-                        <span className="stat-label">En retard</span>
-                      </div>
-                      <div className="planning-stat">
-                        <span className="stat-number">7</span>
-                        <span className="stat-label">Cette semaine</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeModule === 'exploitation' && (
-                  <div className="exploitation-section">
-                    <div className="section-actions">
-                      <button className="btn-primary">
-                        <Download size={16} />
-                        Export Excel
-                      </button>
-                      <button className="btn-secondary">
-                        <FileText size={16} />
-                        Rapport Word
-                      </button>
-                      <button className="btn-secondary">
-                        <BarChart3 size={16} />
-                        Statistiques
-                      </button>
-                    </div>
-                    
-                    <div className="export-options">
-                      <div className="export-item">
-                        <FileText size={20} />
-                        <span>Rapport mensuel automatique</span>
-                        <button className="btn-icon">
-                          <Download size={16} />
-                        </button>
-                      </div>
-                      <div className="export-item">
-                        <BarChart3 size={20} />
-                        <span>Indicateurs de performance</span>
-                        <button className="btn-icon">
-                          <Download size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {(activeModule === 'calibration' || activeModule === 'inventory') && (
-                  <div className="feature-section">
-                    <div className="section-actions">
-                      <button className="btn-primary">
-                        <Settings size={16} />
-                        Configurer
-                      </button>
-                      <button className="btn-secondary">
-                        <FileText size={16} />
-                        Documentation
-                      </button>
-                    </div>
-                    
-                    <div className="feature-info">
-                      <p>Module en cours de développement. Toutes les fonctionnalités listées seront bientôt disponibles.</p>
-                    </div>
-                  </div>
-                )}
               </div>
-            );
-          })()}
-        </div>
-      )}
 
-      {/* Section de sauvegarde rapide */}
-      <div className="quick-actions-section">
-        <h3>Actions rapides</h3>
-        <div className="quick-actions-grid">
-          <button 
-            className="quick-action-btn backup"
-            onClick={handleCreateBackup}
-            disabled={isLoading}
-          >
-            <Download size={24} />
-            <span>Créer une sauvegarde</span>
-          </button>
-          
-          <button 
-            className="quick-action-btn optimize"
-            onClick={handleOptimizeDatabase}
-            disabled={isLoading}
-          >
-            <Zap size={24} />
-            <span>Optimiser le système</span>
-          </button>
-          
-          <button 
-            className="quick-action-btn danger"
-            onClick={() => setShowConfirmDialog('reset-database')}
-            disabled={isLoading}
-          >
-            <Trash2 size={24} />
-            <span>Réinitialiser</span>
-          </button>
-        </div>
+              <div className="import-export-card">
+                <h3>
+                  <Download size={24} />
+                  Exporter des données
+                </h3>
+                <p>Exporter les données vers différents formats</p>
+                <div className="export-options">
+                  <button className="btn-secondary">
+                    <Download size={16} />
+                    Exporter tout (SQL)
+                  </button>
+                  <button className="btn-secondary">
+                    <Download size={16} />
+                    Exporter Agents (CSV)
+                  </button>
+                  <button className="btn-secondary">
+                    <Download size={16} />
+                    Exporter Entreprises (CSV)
+                  </button>
+                  <button className="btn-secondary">
+                    <Download size={16} />
+                    Exporter Contrôles (CSV)
+                  </button>
+                  <button className="btn-secondary">
+                    <Download size={16} />
+                    Exporter Factures (CSV)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="import-history">
+              <h3>Historique des opérations</h3>
+              <div className="history-list">
+                <div className="history-item success">
+                  <div className="history-info">
+                    <span className="history-action">Export Agents (CSV)</span>
+                    <span className="history-date">16/01/2025 à 14:25</span>
+                  </div>
+                  <span className="history-status">Réussi</span>
+                </div>
+                <div className="history-item success">
+                  <div className="history-info">
+                    <span className="history-action">Import Entreprises (CSV)</span>
+                    <span className="history-date">15/01/2025 à 10:30</span>
+                  </div>
+                  <span className="history-status">Réussi</span>
+                </div>
+                <div className="history-item error">
+                  <div className="history-info">
+                    <span className="history-action">Import Agents (CSV)</span>
+                    <span className="history-date">14/01/2025 à 16:45</span>
+                  </div>
+                  <span className="history-status">Échec</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Section Maintenance */}
+        {activeSection === 'maintenance' && (
+          <div className="maintenance-section">
+            <div className="section-header">
+              <h2>Maintenance système</h2>
+            </div>
+
+            <div className="maintenance-actions">
+              <div className="maintenance-card">
+                <div className="maintenance-info">
+                  <h3>
+                    <RefreshCw size={24} />
+                    Optimiser la base de données
+                  </h3>
+                  <p>Optimise les performances et libère l'espace inutilisé</p>
+                  <div className="maintenance-meta">
+                    <span>Dernière optimisation: Il y a 3 jours</span>
+                  </div>
+                </div>
+                <button 
+                  className="btn-primary"
+                  onClick={handleOptimizeDatabase}
+                  disabled={isLoading}
+                >
+                  Optimiser
+                </button>
+              </div>
+
+              <div className="maintenance-card warning">
+                <div className="maintenance-info">
+                  <h3>
+                    <Trash2 size={24} />
+                    Réinitialiser la base de données
+                  </h3>
+                  <p>Supprime toutes les données et recrée la structure</p>
+                  <div className="maintenance-warning">
+                    <AlertTriangle size={16} />
+                    <span>Action irréversible - Créez une sauvegarde avant</span>
+                  </div>
+                </div>
+                <button 
+                  className="btn-warning"
+                  onClick={() => setShowConfirmDialog('reset-database')}
+                  disabled={isLoading}
+                >
+                  Réinitialiser
+                </button>
+              </div>
+            </div>
+
+            <div className="system-info">
+              <h3>Informations système</h3>
+              <div className="system-grid">
+                <div className="system-item">
+                  <span className="system-label">Version AGANOR:</span>
+                  <span className="system-value">1.0.0</span>
+                </div>
+                <div className="system-item">
+                  <span className="system-label">Node.js:</span>
+                  <span className="system-value">v20.19.1</span>
+                </div>
+                <div className="system-item">
+                  <span className="system-label">SQLite:</span>
+                  <span className="system-value">3.45.0</span>
+                </div>
+                <div className="system-item">
+                  <span className="system-label">Espace disque utilisé:</span>
+                  <span className="system-value">2.4 MB</span>
+                </div>
+                <div className="system-item">
+                  <span className="system-label">Dernière maintenance:</span>
+                  <span className="system-value">13/01/2025</span>
+                </div>
+                <div className="system-item">
+                  <span className="system-label">Statut système:</span>
+                  <span className="system-value status-healthy">Opérationnel</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dialog de confirmation */}
