@@ -1,0 +1,626 @@
+/* Page Gestion des Entreprises - Design moderne épuré */
+
+.entreprises-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 0;
+}
+
+/* Header moderne */
+.entreprises-header-modern {
+  background: white;
+  padding: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-content-modern {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title-modern {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title-icon-modern {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.title-text-modern h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.title-text-modern p {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+.btn-add-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-modern:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+/* Barre de recherche et filtres */
+.search-filters-modern {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.search-container-modern {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-container-modern svg {
+  position: absolute;
+  left: 1rem;
+  color: #9ca3af;
+  z-index: 2;
+}
+
+.search-input-enterprise {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.search-input-enterprise:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-container-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+}
+
+.filter-select-enterprise {
+  padding: 0.875rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+  min-width: 180px;
+  transition: all 0.2s ease;
+}
+
+.filter-select-enterprise:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Statistiques modernes */
+.stats-container-modern {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 0 2rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.stat-card-enterprise {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-enterprise::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.stat-card-enterprise.total::before {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.stat-card-enterprise.conformes::before {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.stat-card-enterprise.non-conformes::before {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.stat-card-enterprise.en-attente::before {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.stat-card-enterprise:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number-enterprise {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card-enterprise.total .stat-number-enterprise {
+  color: #64748b;
+}
+
+.stat-card-enterprise.conformes .stat-number-enterprise {
+  color: #22c55e;
+}
+
+.stat-card-enterprise.non-conformes .stat-number-enterprise {
+  color: #ef4444;
+}
+
+.stat-card-enterprise.en-attente .stat-number-enterprise {
+  color: #f59e0b;
+}
+
+.stat-label-enterprise {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Grille des entreprises */
+.entreprises-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+  padding: 0 2rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.entreprise-card-modern {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.entreprise-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-header-modern {
+  margin-bottom: 1.5rem;
+}
+
+.entreprise-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.entreprise-nom {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  flex: 1;
+}
+
+.status-badge-modern {
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.status-badge-modern.status-conforme {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.status-badge-modern.status-non-conforme {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.status-badge-modern.status-en-attente {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.card-content-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-row-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.info-label-modern {
+  font-weight: 600;
+  color: #374151;
+  min-width: 80px;
+}
+
+.info-value-modern {
+  color: #6b7280;
+  flex: 1;
+}
+
+.info-row-modern svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.secteur-badge-modern {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.secteur-badge-modern.secteur-transport {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.secteur-badge-modern.secteur-petrole {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.secteur-badge-modern.secteur-sante {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.secteur-badge-modern.secteur-commerce {
+  background: #f3e8ff;
+  color: #7c2d12;
+}
+
+.secteur-badge-modern.secteur-industrie {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.secteur-badge-modern.secteur-default {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.card-actions-modern {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-action-modern {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-action-modern.secondary {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-action-modern.secondary:hover {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.btn-action-modern.primary {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-action-modern.primary:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+/* Modal moderne */
+.modal-overlay-enterprise {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 2rem;
+}
+
+.modal-content-enterprise {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header-enterprise {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.modal-header-enterprise h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modal-close-enterprise {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close-enterprise:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.modal-form-enterprise {
+  padding: 2rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.form-section-enterprise {
+  margin-bottom: 2rem;
+}
+
+.section-title-enterprise {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.section-title-enterprise svg {
+  color: #3b82f6;
+}
+
+.form-grid-enterprise {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group-enterprise {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group-enterprise.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group-enterprise label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-group-enterprise input,
+.form-group-enterprise select {
+  padding: 0.875rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.form-group-enterprise input:focus,
+.form-group-enterprise select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-actions-enterprise {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-cancel-enterprise {
+  padding: 0.875rem 1.5rem;
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-enterprise:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-save-enterprise {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-save-enterprise:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .entreprises-header-modern {
+    padding: 1.5rem 1rem;
+  }
+  
+  .header-content-modern {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .search-filters-modern {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .stats-container-modern {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 1rem 1rem;
+  }
+  
+  .entreprises-grid-modern {
+    grid-template-columns: 1fr;
+    padding: 0 1rem 1rem;
+    gap: 1rem;
+  }
+  
+  .modal-overlay-enterprise {
+    padding: 1rem;
+  }
+  
+  .modal-content-enterprise {
+    max-width: 100%;
+  }
+  
+  .form-grid-enterprise {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-actions-enterprise {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-container-modern {
+    grid-template-columns: 1fr;
+  }
+  
+  .entreprise-info-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .card-actions-modern {
+    flex-direction: column;
+  }
+}

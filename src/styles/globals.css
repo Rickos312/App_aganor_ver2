@@ -1518,8 +1518,9 @@ body {
   animation: fadeIn 0.5s ease-out;
 }
 
-/* Import du CSS spécifique aux agents */
+/* Import du CSS spécifique aux agents et entreprises */
 @import url('./agents.css');
+@import url('./entreprises.css');
 
 /* Responsive */
 @media (max-width: 768px) {
