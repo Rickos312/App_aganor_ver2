@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Settings, Navigation, Calendar, Shield } from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield } from 'lucide-react';
 
 interface Agent {
   id: number;
@@ -93,12 +93,12 @@ const Agents: React.FC = () => {
     },
     {
       id: 3,
-      nom: 'PENDY',
-      prenom: 'Vanessa',
-      email: 'v.pendy@aganor.ga',
-      telephone: '+241 20 96 24 421',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
+      nom: 'NDONG',
+      prenom: 'Martin',
+      email: 'm.ndong@aganor.ga',
+      telephone: '+241 06 34 56 78',
+      role: 'inspecteur',
+      zone: 'Libreville Sud',
       statut: 'actif',
       controlesEnCours: 2,
       dernierControle: '2025-01-13'
@@ -177,12 +177,12 @@ const Agents: React.FC = () => {
     },
     {
       id: 10,
-      nom: 'NDONG',
-      prenom: 'Martin',
-      email: 'm.ndong@aganor.ga',
-      telephone: '+241 06 34 56 78',
-      role: 'inspecteur',
-      zone: 'Libreville Sud',
+      nom: 'PENDY',
+      prenom: 'Vanessa',
+      email: 'v.pendy@aganor.ga',
+      telephone: '+241 20 96 24 421',
+      role: 'technicien_metrologie',
+      zone: 'Libreville',
       statut: 'actif',
       controlesEnCours: 2,
       dernierControle: '2025-01-11'
