@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Mail, Phone, MapPin } from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield } from 'lucide-react';
 
 interface Agent {
   id: number;
@@ -12,12 +12,61 @@ interface Agent {
   statut: 'actif' | 'inactif' | 'conge';
   controlesEnCours: number;
   dernierControle: string;
+  dateEmbauche?: string;
+  numeroMatricule?: string;
+  adresse?: string;
+  dateNaissance?: string;
+  lieuNaissance?: string;
+  nationalite?: string;
+  situationMatrimoniale?: 'celibataire' | 'marie' | 'divorce' | 'veuf';
+  nombreEnfants?: number;
+  niveauEtude?: string;
+  diplomes?: string[];
+  certifications?: string[];
+  salaire?: number;
+  typeContrat?: 'cdi' | 'cdd' | 'stage' | 'consultant';
+  dateFinContrat?: string;
+  superviseur?: string;
+  geolocalisation?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+interface NouvelAgent {
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  role: 'inspecteur' | 'superviseur' | 'admin' | 'technicien_qualite' | 'technicien_metrologie' | '';
+  zone: string;
+  statut: 'actif' | 'inactif' | 'conge';
+  dateEmbauche: string;
+  numeroMatricule: string;
+  adresse: string;
+  dateNaissance: string;
+  lieuNaissance: string;
+  nationalite: string;
+  situationMatrimoniale: 'celibataire' | 'marie' | 'divorce' | 'veuf' | '';
+  nombreEnfants: string;
+  niveauEtude: string;
+  diplomes: string[];
+  certifications: string[];
+  salaire: string;
+  typeContrat: 'cdi' | 'cdd' | 'stage' | 'consultant' | '';
+  dateFinContrat: string;
+  superviseur: string;
+  geolocalisation: {
+    latitude: string;
+    longitude: string;
+  };
 }
 
 const Agents: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [showModal, setShowModal] = useState(false);
 
-  const agents: Agent[] = [
+  const [agents, setAgents] = useState<Agent[]>([
     {
       id: 1,
       nom: 'MBADINGA',
@@ -138,9 +187,42 @@ const Agents: React.FC = () => {
       controlesEnCours: 2,
       dernierControle: '2025-01-11'
     }
-  ];
+  ]);
+
+  const [nouvelAgent, setNouvelAgent] = useState<NouvelAgent>({
+    nom: '',
+    prenom: '',
+    email: '',
+    telephone: '',
+    role: '',
+    zone: '',
+    statut: 'actif',
+    dateEmbauche: '',
+    numeroMatricule: '',
+    adresse: '',
+    dateNaissance: '',
+    lieuNaissance: '',
+    nationalite: 'Gabonaise',
+    situationMatrimoniale: '',
+    nombreEnfants: '0',
+    niveauEtude: '',
+    diplomes: [''],
+    certifications: [''],
+    salaire: '',
+    typeContrat: '',
+    dateFinContrat: '',
+    superviseur: '',
+    geolocalisation: {
+      latitude: '',
+      longitude: ''
+    }
+  });
 
   const roles = ['inspecteur', 'superviseur', 'admin', 'technicien_qualite', 'technicien_metrologie'];
+  const zones = ['Libreville Nord', 'Libreville Sud', 'Libreville Centre', 'Port-Gentil', 'Franceville', 'Oyem', 'Lambaréné', 'Mouila', 'Tchibanga', 'Toutes zones'];
+  const nationalites = ['Gabonaise', 'Française', 'Camerounaise', 'Équato-guinéenne', 'Congolaise', 'Tchadienne', 'Centrafricaine', 'Autre'];
+  const niveauxEtude = ['Baccalauréat', 'BTS/DUT', 'Licence', 'Master', 'Doctorat', 'École d\'ingénieur', 'Formation professionnelle'];
+  const typesContrat = ['cdi', 'cdd', 'stage', 'consultant'];
 
   const filteredAgents = agents.filter(agent => {
     return selectedRole === '' || agent.role === selectedRole;
@@ -186,6 +268,213 @@ const Agents: React.FC = () => {
     }
   };
 
+  const getContratLabel = (type: string) => {
+    switch (type) {
+      case 'cdi': return 'CDI';
+      case 'cdd': return 'CDD';
+      case 'stage': return 'Stage';
+      case 'consultant': return 'Consultant';
+      default: return type;
+    }
+  };
+
+  const getSituationLabel = (situation: string) => {
+    switch (situation) {
+      case 'celibataire': return 'Célibataire';
+      case 'marie': return 'Marié(e)';
+      case 'divorce': return 'Divorcé(e)';
+      case 'veuf': return 'Veuf/Veuve';
+      default: return situation;
+    }
+  };
+
+  const handleInputChange = (field: keyof NouvelAgent, value: string) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleArrayChange = (field: 'diplomes' | 'certifications', index: number, value: string) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const addArrayItem = (field: 'diplomes' | 'certifications') => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: [...prev[field], '']
+    }));
+  };
+
+  const removeArrayItem = (field: 'diplomes' | 'certifications', index: number) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleGeolocationChange = (field: 'latitude' | 'longitude', value: string) => {
+    setNouvelAgent(prev => ({
+      ...prev,
+      geolocalisation: {
+        ...prev.geolocalisation,
+        [field]: value
+      }
+    }));
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setNouvelAgent(prev => ({
+            ...prev,
+            geolocalisation: {
+              latitude: position.coords.latitude.toString(),
+              longitude: position.coords.longitude.toString()
+            }
+          }));
+        },
+        (error) => {
+          alert('Erreur lors de la récupération de la géolocalisation: ' + error.message);
+        }
+      );
+    } else {
+      alert('La géolocalisation n\'est pas supportée par ce navigateur.');
+    }
+  };
+
+  const generateMatricule = () => {
+    const year = new Date().getFullYear();
+    const randomNum = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    const matricule = `AG${year}${randomNum}`;
+    setNouvelAgent(prev => ({ ...prev, numeroMatricule: matricule }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation basique
+    if (!nouvelAgent.nom || !nouvelAgent.prenom || !nouvelAgent.email || !nouvelAgent.role) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    // Vérifier si l'email existe déjà
+    if (agents.some(agent => agent.email === nouvelAgent.email)) {
+      alert('Un agent avec cet email existe déjà');
+      return;
+    }
+
+    // Vérifier si le matricule existe déjà
+    if (nouvelAgent.numeroMatricule && agents.some(agent => agent.numeroMatricule === nouvelAgent.numeroMatricule)) {
+      alert('Un agent avec ce matricule existe déjà');
+      return;
+    }
+
+    // Ajouter le nouvel agent
+    const newId = Math.max(...agents.map(a => a.id)) + 1;
+    const newAgent: Agent = {
+      id: newId,
+      nom: nouvelAgent.nom,
+      prenom: nouvelAgent.prenom,
+      email: nouvelAgent.email,
+      telephone: nouvelAgent.telephone,
+      role: nouvelAgent.role as any,
+      zone: nouvelAgent.zone,
+      statut: nouvelAgent.statut,
+      controlesEnCours: 0,
+      dernierControle: new Date().toISOString().split('T')[0],
+      dateEmbauche: nouvelAgent.dateEmbauche,
+      numeroMatricule: nouvelAgent.numeroMatricule,
+      adresse: nouvelAgent.adresse,
+      dateNaissance: nouvelAgent.dateNaissance,
+      lieuNaissance: nouvelAgent.lieuNaissance,
+      nationalite: nouvelAgent.nationalite,
+      situationMatrimoniale: nouvelAgent.situationMatrimoniale as any,
+      nombreEnfants: parseInt(nouvelAgent.nombreEnfants) || 0,
+      niveauEtude: nouvelAgent.niveauEtude,
+      diplomes: nouvelAgent.diplomes.filter(d => d.trim() !== ''),
+      certifications: nouvelAgent.certifications.filter(c => c.trim() !== ''),
+      salaire: parseFloat(nouvelAgent.salaire) || undefined,
+      typeContrat: nouvelAgent.typeContrat as any,
+      dateFinContrat: nouvelAgent.dateFinContrat || undefined,
+      superviseur: nouvelAgent.superviseur || undefined,
+      geolocalisation: nouvelAgent.geolocalisation.latitude && nouvelAgent.geolocalisation.longitude ? {
+        latitude: parseFloat(nouvelAgent.geolocalisation.latitude),
+        longitude: parseFloat(nouvelAgent.geolocalisation.longitude)
+      } : undefined
+    };
+
+    setAgents(prev => [...prev, newAgent]);
+    
+    // Réinitialiser le formulaire
+    setNouvelAgent({
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: '',
+      role: '',
+      zone: '',
+      statut: 'actif',
+      dateEmbauche: '',
+      numeroMatricule: '',
+      adresse: '',
+      dateNaissance: '',
+      lieuNaissance: '',
+      nationalite: 'Gabonaise',
+      situationMatrimoniale: '',
+      nombreEnfants: '0',
+      niveauEtude: '',
+      diplomes: [''],
+      certifications: [''],
+      salaire: '',
+      typeContrat: '',
+      dateFinContrat: '',
+      superviseur: '',
+      geolocalisation: {
+        latitude: '',
+        longitude: ''
+      }
+    });
+    setShowModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setNouvelAgent({
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: '',
+      role: '',
+      zone: '',
+      statut: 'actif',
+      dateEmbauche: '',
+      numeroMatricule: '',
+      adresse: '',
+      dateNaissance: '',
+      lieuNaissance: '',
+      nationalite: 'Gabonaise',
+      situationMatrimoniale: '',
+      nombreEnfants: '0',
+      niveauEtude: '',
+      diplomes: [''],
+      certifications: [''],
+      salaire: '',
+      typeContrat: '',
+      dateFinContrat: '',
+      superviseur: '',
+      geolocalisation: {
+        latitude: '',
+        longitude: ''
+      }
+    });
+  };
+
   // Statistiques des agents
   const statsAgents = {
     total: agents.length,
@@ -205,7 +494,7 @@ const Agents: React.FC = () => {
             <p>Équipe AGANOR et affectations</p>
           </div>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => setShowModal(true)}>
           <UserPlus size={20} />
           Nouvel agent
         </button>
@@ -304,6 +593,429 @@ const Agents: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Modal pour ajouter un nouvel agent */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content large-modal">
+            <div className="modal-header">
+              <h2>Nouvel Agent AGANOR</h2>
+              <button className="modal-close" onClick={handleCloseModal}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="modal-form">
+              {/* Informations personnelles */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <User size={20} />
+                  Informations personnelles
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="nom">Nom *</label>
+                    <input
+                      type="text"
+                      id="nom"
+                      value={nouvelAgent.nom}
+                      onChange={(e) => handleInputChange('nom', e.target.value)}
+                      placeholder="Ex: MBADINGA"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="prenom">Prénom *</label>
+                    <input
+                      type="text"
+                      id="prenom"
+                      value={nouvelAgent.prenom}
+                      onChange={(e) => handleInputChange('prenom', e.target.value)}
+                      placeholder="Ex: Jean-Claude"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="dateNaissance">Date de naissance</label>
+                    <input
+                      type="date"
+                      id="dateNaissance"
+                      value={nouvelAgent.dateNaissance}
+                      onChange={(e) => handleInputChange('dateNaissance', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="lieuNaissance">Lieu de naissance</label>
+                    <input
+                      type="text"
+                      id="lieuNaissance"
+                      value={nouvelAgent.lieuNaissance}
+                      onChange={(e) => handleInputChange('lieuNaissance', e.target.value)}
+                      placeholder="Ex: Libreville"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="nationalite">Nationalité</label>
+                    <select
+                      id="nationalite"
+                      value={nouvelAgent.nationalite}
+                      onChange={(e) => handleInputChange('nationalite', e.target.value)}
+                    >
+                      {nationalites.map(nat => (
+                        <option key={nat} value={nat}>{nat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="situationMatrimoniale">Situation matrimoniale</label>
+                    <select
+                      id="situationMatrimoniale"
+                      value={nouvelAgent.situationMatrimoniale}
+                      onChange={(e) => handleInputChange('situationMatrimoniale', e.target.value)}
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="celibataire">Célibataire</option>
+                      <option value="marie">Marié(e)</option>
+                      <option value="divorce">Divorcé(e)</option>
+                      <option value="veuf">Veuf/Veuve</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="nombreEnfants">Nombre d'enfants</label>
+                    <input
+                      type="number"
+                      id="nombreEnfants"
+                      min="0"
+                      value={nouvelAgent.nombreEnfants}
+                      onChange={(e) => handleInputChange('nombreEnfants', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label htmlFor="adresse">Adresse</label>
+                    <input
+                      type="text"
+                      id="adresse"
+                      value={nouvelAgent.adresse}
+                      onChange={(e) => handleInputChange('adresse', e.target.value)}
+                      placeholder="Adresse complète"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Phone size={20} />
+                  Informations de contact
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="email">Email *</label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={nouvelAgent.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="prenom.nom@aganor.ga"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="telephone">Téléphone</label>
+                    <input
+                      type="tel"
+                      id="telephone"
+                      value={nouvelAgent.telephone}
+                      onChange={(e) => handleInputChange('telephone', e.target.value)}
+                      placeholder="+241 XX XX XX XX"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations professionnelles */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Shield size={20} />
+                  Informations professionnelles
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="numeroMatricule">Numéro matricule</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        id="numeroMatricule"
+                        value={nouvelAgent.numeroMatricule}
+                        onChange={(e) => handleInputChange('numeroMatricule', e.target.value)}
+                        placeholder="Ex: AG2025001"
+                      />
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={generateMatricule}
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        Générer
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="role">Rôle *</label>
+                    <select
+                      id="role"
+                      value={nouvelAgent.role}
+                      onChange={(e) => handleInputChange('role', e.target.value)}
+                      required
+                    >
+                      <option value="">Sélectionner un rôle</option>
+                      {roles.map(role => (
+                        <option key={role} value={role}>{getRoleLabel(role)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="zone">Zone d'intervention</label>
+                    <select
+                      id="zone"
+                      value={nouvelAgent.zone}
+                      onChange={(e) => handleInputChange('zone', e.target.value)}
+                    >
+                      <option value="">Sélectionner une zone</option>
+                      {zones.map(zone => (
+                        <option key={zone} value={zone}>{zone}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="statut">Statut</label>
+                    <select
+                      id="statut"
+                      value={nouvelAgent.statut}
+                      onChange={(e) => handleInputChange('statut', e.target.value as any)}
+                    >
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                      <option value="conge">En congé</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="dateEmbauche">Date d'embauche</label>
+                    <input
+                      type="date"
+                      id="dateEmbauche"
+                      value={nouvelAgent.dateEmbauche}
+                      onChange={(e) => handleInputChange('dateEmbauche', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="typeContrat">Type de contrat</label>
+                    <select
+                      id="typeContrat"
+                      value={nouvelAgent.typeContrat}
+                      onChange={(e) => handleInputChange('typeContrat', e.target.value)}
+                    >
+                      <option value="">Sélectionner</option>
+                      {typesContrat.map(type => (
+                        <option key={type} value={type}>{getContratLabel(type)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {nouvelAgent.typeContrat === 'cdd' && (
+                    <div className="form-group">
+                      <label htmlFor="dateFinContrat">Date fin de contrat</label>
+                      <input
+                        type="date"
+                        id="dateFinContrat"
+                        value={nouvelAgent.dateFinContrat}
+                        onChange={(e) => handleInputChange('dateFinContrat', e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label htmlFor="salaire">Salaire (XAF)</label>
+                    <input
+                      type="number"
+                      id="salaire"
+                      value={nouvelAgent.salaire}
+                      onChange={(e) => handleInputChange('salaire', e.target.value)}
+                      placeholder="Ex: 500000"
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label htmlFor="superviseur">Superviseur</label>
+                    <input
+                      type="text"
+                      id="superviseur"
+                      value={nouvelAgent.superviseur}
+                      onChange={(e) => handleInputChange('superviseur', e.target.value)}
+                      placeholder="Nom du superviseur direct"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Formation et qualifications */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Calendar size={20} />
+                  Formation et qualifications
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group full-width">
+                    <label htmlFor="niveauEtude">Niveau d'étude</label>
+                    <select
+                      id="niveauEtude"
+                      value={nouvelAgent.niveauEtude}
+                      onChange={(e) => handleInputChange('niveauEtude', e.target.value)}
+                    >
+                      <option value="">Sélectionner</option>
+                      {niveauxEtude.map(niveau => (
+                        <option key={niveau} value={niveau}>{niveau}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Diplômes</label>
+                    {nouvelAgent.diplomes.map((diplome, index) => (
+                      <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input
+                          type="text"
+                          value={diplome}
+                          onChange={(e) => handleArrayChange('diplomes', index, e.target.value)}
+                          placeholder="Ex: Master en Métrologie"
+                          style={{ flex: 1 }}
+                        />
+                        {nouvelAgent.diplomes.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => removeArrayItem('diplomes', index)}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => addArrayItem('diplomes')}
+                      style={{ marginTop: '0.5rem' }}
+                    >
+                      Ajouter un diplôme
+                    </button>
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Certifications</label>
+                    {nouvelAgent.certifications.map((certification, index) => (
+                      <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input
+                          type="text"
+                          value={certification}
+                          onChange={(e) => handleArrayChange('certifications', index, e.target.value)}
+                          placeholder="Ex: Certification ISO 9001"
+                          style={{ flex: 1 }}
+                        />
+                        {nouvelAgent.certifications.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => removeArrayItem('certifications', index)}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => addArrayItem('certifications')}
+                      style={{ marginTop: '0.5rem' }}
+                    >
+                      Ajouter une certification
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Géolocalisation */}
+              <div className="form-section">
+                <h3 className="section-title">
+                  <Navigation size={20} />
+                  Géolocalisation (optionnel)
+                </h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="latitude">Latitude</label>
+                    <input
+                      type="number"
+                      id="latitude"
+                      step="any"
+                      value={nouvelAgent.geolocalisation.latitude}
+                      onChange={(e) => handleGeolocationChange('latitude', e.target.value)}
+                      placeholder="Ex: 0.3901"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="longitude">Longitude</label>
+                    <input
+                      type="number"
+                      id="longitude"
+                      step="any"
+                      value={nouvelAgent.geolocalisation.longitude}
+                      onChange={(e) => handleGeolocationChange('longitude', e.target.value)}
+                      placeholder="Ex: 9.4544"
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <button
+                      type="button"
+                      className="btn-secondary geolocation-btn"
+                      onClick={getCurrentLocation}
+                    >
+                      <Navigation size={16} />
+                      Utiliser ma position actuelle
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+                  Annuler
+                </button>
+                <button type="submit" className="btn-primary">
+                  <Save size={20} />
+                  Enregistrer l'agent
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
