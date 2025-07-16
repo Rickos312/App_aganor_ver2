@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, Building2, Settings, Save, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Calendar, Clock, User, Building2, Settings, Save, X, ChevronLeft, ChevronRight, Plus, Printer } from 'lucide-react';
 
 interface Instrument {
   type: string;
@@ -528,6 +528,15 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose }
                 <div className="modal-actions">
                   <button type="button" className="btn-secondary" onClick={() => setShowEventModal(false)}>
                     Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn-secondary"
+                    onClick={() => handlePrintControlForm()}
+                    disabled={!nouveauControle.entrepriseId || !nouveauControle.technicienId}
+                  >
+                    <Printer size={16} />
+                    Imprimer fiche
                   </button>
                   <button type="submit" className="btn-primary">
                     <Save size={16} />
