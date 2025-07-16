@@ -299,6 +299,297 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose }
 
   const entrepriseSelectionnee = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
 
+  // Fonction pour imprimer la fiche de contrôle
+  const handlePrintControlForm = () => {
+    if (!nouveauControle.entrepriseId || !nouveauControle.technicienId) {
+      alert('Veuillez sélectionner une entreprise et un technicien avant d\'imprimer');
+      return;
+    }
+
+    const entreprise = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
+    const technicien = techniciens.find(t => t.id === parseInt(nouveauControle.technicienId));
+    
+    if (!entreprise || !technicien) return;
+
+    const instrumentsSelectionnes = entreprise.instruments.filter((_, index) => 
+      nouveauControle.instrumentsSelectionnes.includes(index.toString())
+    );
+
+    // Créer le contenu HTML pour l'impression
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Fiche de Contrôle Métrologique - AGANOR</title>
+        <style>
+          @media print {
+            body { margin: 0; font-family: Arial, sans-serif; }
+            .no-print { display: none !important; }
+          }
+          body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.4; 
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+          }
+          .subtitle {
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+          }
+          .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            color: #333;
+          }
+          .section {
+            margin-bottom: 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+          }
+          .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+          }
+          .info-item {
+            display: flex;
+            flex-direction: column;
+          }
+          .info-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+          }
+          .info-value {
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            min-height: 20px;
+          }
+          .instruments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+          }
+          .instruments-table th,
+          .instruments-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+          }
+          .instruments-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+          }
+          .signature-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+          }
+          .signature-box {
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 20px;
+            min-height: 80px;
+          }
+          .signature-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          .notes-section {
+            margin-top: 20px;
+          }
+          .notes-area {
+            border: 1px solid #ddd;
+            min-height: 100px;
+            padding: 10px;
+            background-color: #fafafa;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">AGANOR</div>
+          <div class="subtitle">Agence Gabonaise de Normalisation</div>
+          <div class="subtitle">Votre passerelle vers la Qualité</div>
+        </div>
+
+        <div class="title">FICHE DE CONTRÔLE MÉTROLOGIQUE</div>
+
+        <div class="section">
+          <div class="section-title">INFORMATIONS GÉNÉRALES</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Date de contrôle</div>
+              <div class="info-value">${nouveauControle.date ? new Date(nouveauControle.date).toLocaleDateString('fr-FR') : '_______________'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Heure de début</div>
+              <div class="info-value">${nouveauControle.heure || '_______________'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">N° de fiche</div>
+              <div class="info-value">FC-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Type de contrôle</div>
+              <div class="info-value">${nouveauControle.controleType || 'Contrôle périodique'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">ENTREPRISE CONTRÔLÉE</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Raison sociale</div>
+              <div class="info-value">${entreprise.nom}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Adresse</div>
+              <div class="info-value">${entreprise.adresse}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">AGENT CONTRÔLEUR</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Nom et Prénom</div>
+              <div class="info-value">${technicien.prenom} ${technicien.nom}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Fonction</div>
+              <div class="info-value">${technicien.role}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Zone d'intervention</div>
+              <div class="info-value">${technicien.zone}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Signature</div>
+              <div class="info-value"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">INSTRUMENTS À CONTRÔLER</div>
+          <table class="instruments-table">
+            <thead>
+              <tr>
+                <th>Type d'instrument</th>
+                <th>Marque</th>
+                <th>Modèle</th>
+                <th>N° de série</th>
+                <th>Localisation</th>
+                <th>Résultat</th>
+                <th>Observations</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${instrumentsSelectionnes.length > 0 ? instrumentsSelectionnes.map(instrument => `
+                <tr>
+                  <td>${instrument.type}</td>
+                  <td>${instrument.marque}</td>
+                  <td>${instrument.modele}</td>
+                  <td>${instrument.numeroSerie}</td>
+                  <td>${instrument.localisation}</td>
+                  <td style="width: 80px;"></td>
+                  <td style="width: 120px;"></td>
+                </tr>
+              `).join('') : `
+                <tr>
+                  <td colspan="7" style="text-align: center; font-style: italic;">Aucun instrument sélectionné</td>
+                </tr>
+              `}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">OBSERVATIONS ET NOTES</div>
+          <div class="notes-area">
+            ${nouveauControle.notes || ''}
+          </div>
+        </div>
+
+        <div class="signature-section">
+          <div class="signature-box">
+            <div class="signature-title">Signature de l'Agent AGANOR</div>
+            <div style="margin-top: 40px;">Date : _______________</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-title">Signature du Responsable Entreprise</div>
+            <div style="margin-top: 40px;">Date : _______________</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>AGANOR - Agence Gabonaise de Normalisation</p>
+          <p>Tél: +241 01 XX XX XX | Email: contact@aganor.ga</p>
+          <p>Document généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Ouvrir une nouvelle fenêtre pour l'impression
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      
+      // Attendre que le contenu soit chargé puis imprimer
+      printWindow.onload = () => {
+        printWindow.print();
+        printWindow.close();
+      };
+    } else {
+      alert('Impossible d\'ouvrir la fenêtre d\'impression. Veuillez vérifier les paramètres de votre navigateur.');
+    }
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-content large-modal">
