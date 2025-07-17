@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield } from 'lucide-react';
+import { useAgents } from '../hooks/useSupabaseData';
 
 interface Agent {
-  id: number;
+  id: string;
   nom: string;
   prenom: string;
   email: string;
@@ -12,8 +14,8 @@ interface Agent {
   statut: 'actif' | 'inactif' | 'conge';
   controlesEnCours: number;
   dernierControle: string;
+  numero_matricule?: string;
   dateEmbauche?: string;
-  numeroMatricule?: string;
   adresse?: string;
   dateNaissance?: string;
   lieuNaissance?: string;
@@ -65,129 +67,42 @@ interface NouvelAgent {
 const Agents: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
+  
+  // Utiliser le hook Supabase pour récupérer les agents
+  const { agents: supabaseAgents, loading, error, createAgent, refetch } = useAgents();
 
-  const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: 1,
-      nom: 'MBADINGA',
-      prenom: 'Jean-Claude',
-      email: 'jc.mbadinga@aganor.ga',
-      telephone: '+241 06 12 34 56',
-      role: 'inspecteur',
-      zone: 'Libreville Nord',
-      statut: 'actif',
-      controlesEnCours: 3,
-      dernierControle: '2025-01-15'
-    },
-    {
-      id: 2,
-      nom: 'BONGO',
-      prenom: 'Marie-Claire',
-      email: 'mc.bongo@aganor.ga',
-      telephone: '+241 06 23 45 67',
-      role: 'superviseur',
-      zone: 'Port-Gentil',
-      statut: 'actif',
-      controlesEnCours: 1,
-      dernierControle: '2025-01-14'
-    },
-    {
-      id: 3,
-      nom: 'NDONG',
-      prenom: 'Martin',
-      email: 'm.ndong@aganor.ga',
-      telephone: '+241 06 34 56 78',
-      role: 'inspecteur',
-      zone: 'Libreville Sud',
-      statut: 'actif',
-      controlesEnCours: 2,
-      dernierControle: '2025-01-13'
-    },
-    {
-      id: 4,
-      nom: 'OBAME',
-      prenom: 'Pascal',
-      email: 'p.obame@aganor.ga',
-      telephone: '+241 06 45 67 89',
-      role: 'admin',
-      zone: 'Toutes zones',
-      statut: 'actif',
-      controlesEnCours: 0,
-      dernierControle: '2025-01-10'
-    },
-    {
-      id: 5,
-      nom: 'MIGUELI',
-      prenom: 'Paul',
-      email: 'p.migueli@aganor.ga',
-      telephone: '+241 77 52 42 21',
-      role: 'technicien_qualite',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 4,
-      dernierControle: '2025-01-15'
-    },
-    {
-      id: 6,
-      nom: 'MBA EKOMY',
-      prenom: 'Jean',
-      email: 'j.mba-ekomy@aganor.ga',
-      telephone: '+241 77 92 44 21',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 3,
-      dernierControle: '2025-01-14'
-    },
-    {
-      id: 7,
-      nom: 'KOUMBA',
-      prenom: 'Jérome',
-      email: 'j.koumba@aganor.ga',
-      telephone: '+241 77 92 44 21',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'conge',
-      controlesEnCours: 0,
-      dernierControle: '2025-01-08'
-    },
-    {
-      id: 8,
-      nom: 'DIESSIEMOU',
-      prenom: 'Gildas',
-      email: 'g.diessiemou@aganor.ga',
-      telephone: '+241 67 67 44 21',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 2,
-      dernierControle: '2025-01-13'
-    },
-    {
-      id: 9,
-      nom: 'OYINI',
-      prenom: 'Viviane',
-      email: 'v.oyini@aganor.ga',
-      telephone: '+241 77 92 47 65',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 3,
-      dernierControle: '2025-01-12'
-    },
-    {
-      id: 10,
-      nom: 'PENDY',
-      prenom: 'Vanessa',
-      email: 'v.pendy@aganor.ga',
-      telephone: '+241 20 96 24 421',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 2,
-      dernierControle: '2025-01-11'
-    }
-  ]);
+  // Convertir les agents Supabase au format attendu par le composant
+  const agents: Agent[] = supabaseAgents.map(agent => ({
+    id: agent.id,
+    nom: agent.nom,
+    prenom: agent.prenom,
+    email: agent.email,
+    telephone: agent.telephone || '',
+    role: agent.role,
+    zone: agent.zone || '',
+    statut: agent.statut,
+    controlesEnCours: agent.controles_en_cours || 0,
+    dernierControle: agent.dernier_controle || new Date().toISOString().split('T')[0],
+    numero_matricule: agent.numero_matricule,
+    dateEmbauche: agent.date_embauche,
+    adresse: agent.adresse,
+    dateNaissance: agent.date_naissance,
+    lieuNaissance: agent.lieu_naissance,
+    nationalite: agent.nationalite,
+    situationMatrimoniale: agent.situation_matrimoniale,
+    nombreEnfants: agent.nombre_enfants,
+    niveauEtude: agent.niveau_etude,
+    diplomes: agent.diplomes,
+    certifications: agent.certifications,
+    salaire: agent.salaire,
+    typeContrat: agent.type_contrat,
+    dateFinContrat: agent.date_fin_contrat,
+    superviseur: agent.superviseur,
+    geolocalisation: agent.latitude && agent.longitude ? {
+      latitude: agent.latitude,
+      longitude: agent.longitude
+    } : undefined
+  }));
 
   const [nouvelAgent, setNouvelAgent] = useState<NouvelAgent>({
     nom: '',
@@ -370,77 +285,78 @@ const Agents: React.FC = () => {
     }
 
     // Vérifier si le matricule existe déjà
-    if (nouvelAgent.numeroMatricule && agents.some(agent => agent.numeroMatricule === nouvelAgent.numeroMatricule)) {
+    if (nouvelAgent.numeroMatricule && agents.some(agent => agent.numero_matricule === nouvelAgent.numeroMatricule)) {
       alert('Un agent avec ce matricule existe déjà');
       return;
     }
 
-    // Ajouter le nouvel agent
-    const newId = Math.max(...agents.map(a => a.id)) + 1;
-    const newAgent: Agent = {
-      id: newId,
+    // Créer le nouvel agent via Supabase
+    const newAgentData = {
       nom: nouvelAgent.nom,
       prenom: nouvelAgent.prenom,
       email: nouvelAgent.email,
       telephone: nouvelAgent.telephone,
-      role: nouvelAgent.role as any,
+      role: nouvelAgent.role,
       zone: nouvelAgent.zone,
       statut: nouvelAgent.statut,
-      controlesEnCours: 0,
-      dernierControle: new Date().toISOString().split('T')[0],
-      dateEmbauche: nouvelAgent.dateEmbauche,
-      numeroMatricule: nouvelAgent.numeroMatricule,
+      date_embauche: nouvelAgent.dateEmbauche,
+      numero_matricule: nouvelAgent.numeroMatricule,
       adresse: nouvelAgent.adresse,
-      dateNaissance: nouvelAgent.dateNaissance,
-      lieuNaissance: nouvelAgent.lieuNaissance,
+      date_naissance: nouvelAgent.dateNaissance,
+      lieu_naissance: nouvelAgent.lieuNaissance,
       nationalite: nouvelAgent.nationalite,
-      situationMatrimoniale: nouvelAgent.situationMatrimoniale as any,
-      nombreEnfants: parseInt(nouvelAgent.nombreEnfants) || 0,
-      niveauEtude: nouvelAgent.niveauEtude,
+      situation_matrimoniale: nouvelAgent.situationMatrimoniale,
+      nombre_enfants: parseInt(nouvelAgent.nombreEnfants) || 0,
+      niveau_etude: nouvelAgent.niveauEtude,
       diplomes: nouvelAgent.diplomes.filter(d => d.trim() !== ''),
       certifications: nouvelAgent.certifications.filter(c => c.trim() !== ''),
       salaire: parseFloat(nouvelAgent.salaire) || undefined,
-      typeContrat: nouvelAgent.typeContrat as any,
-      dateFinContrat: nouvelAgent.dateFinContrat || undefined,
+      type_contrat: nouvelAgent.typeContrat,
+      date_fin_contrat: nouvelAgent.dateFinContrat || undefined,
       superviseur: nouvelAgent.superviseur || undefined,
-      geolocalisation: nouvelAgent.geolocalisation.latitude && nouvelAgent.geolocalisation.longitude ? {
-        latitude: parseFloat(nouvelAgent.geolocalisation.latitude),
-        longitude: parseFloat(nouvelAgent.geolocalisation.longitude)
-      } : undefined
+      latitude: nouvelAgent.geolocalisation.latitude ? parseFloat(nouvelAgent.geolocalisation.latitude) : undefined,
+      longitude: nouvelAgent.geolocalisation.longitude ? parseFloat(nouvelAgent.geolocalisation.longitude) : undefined
     };
 
-    setAgents(prev => [...prev, newAgent]);
-    
-    // Réinitialiser le formulaire
-    setNouvelAgent({
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      role: '',
-      zone: '',
-      statut: 'actif',
-      dateEmbauche: '',
-      numeroMatricule: '',
-      adresse: '',
-      dateNaissance: '',
-      lieuNaissance: '',
-      nationalite: 'Gabonaise',
-      situationMatrimoniale: '',
-      nombreEnfants: '0',
-      niveauEtude: '',
-      diplomes: [''],
-      certifications: [''],
-      salaire: '',
-      typeContrat: '',
-      dateFinContrat: '',
-      superviseur: '',
-      geolocalisation: {
-        latitude: '',
-        longitude: ''
-      }
-    });
-    setShowModal(false);
+    // Créer l'agent via Supabase
+    createAgent(newAgentData)
+      .then(() => {
+        // Réinitialiser le formulaire
+        setNouvelAgent({
+          nom: '',
+          prenom: '',
+          email: '',
+          telephone: '',
+          role: '',
+          zone: '',
+          statut: 'actif',
+          dateEmbauche: '',
+          numeroMatricule: '',
+          adresse: '',
+          dateNaissance: '',
+          lieuNaissance: '',
+          nationalite: 'Gabonaise',
+          situationMatrimoniale: '',
+          nombreEnfants: '0',
+          niveauEtude: '',
+          diplomes: [''],
+          certifications: [''],
+          salaire: '',
+          typeContrat: '',
+          dateFinContrat: '',
+          superviseur: '',
+          geolocalisation: {
+            latitude: '',
+            longitude: ''
+          }
+        });
+        setShowModal(false);
+        // Recharger les données pour mettre à jour les statistiques
+        refetch();
+      })
+      .catch((error) => {
+        alert('Erreur lors de la création de l\'agent: ' + error.message);
+      });
   };
 
   const handleCloseModal = () => {
@@ -484,6 +400,29 @@ const Agents: React.FC = () => {
     controlesTotal: agents.reduce((sum, agent) => sum + agent.controlesEnCours, 0)
   };
 
+  // Afficher un loader pendant le chargement
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Chargement des agents...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Afficher une erreur si nécessaire
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="error-container">
+          <p>Erreur lors du chargement des agents: {error}</p>
+          <button onClick={refetch} className="btn-primary">Réessayer</button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="page-container">
       <div className="page-header">
@@ -572,7 +511,7 @@ const Agents: React.FC = () => {
                 </div>
                 <div className="stat-item">
                   <span className="stat-value">
-                    {new Date(agent.dernierControle).toLocaleDateString('fr-FR')}
+                    {agent.dernierControle ? new Date(agent.dernierControle).toLocaleDateString('fr-FR') : 'Aucun'}
                   </span>
                   <span className="stat-label">Dernier contrôle</span>
                 </div>

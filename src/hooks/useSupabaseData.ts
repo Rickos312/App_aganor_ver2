@@ -12,14 +12,33 @@ import {
 
 // Hook pour les agents
 export function useAgents() {
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAgents = async () => {
     try {
       setLoading(true);
-      const data = await AgentService.getAll();
+      // Récupérer les agents avec les contrôles en cours
+      const { data, error } = await supabase
+        .from('agents')
+        .select(`
+          *,
+          controles_en_cours:controles!agent_id(count),
+          dernier_controle:controles!agent_id(date_realisation)
+        `)
+        .order('nom', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Traiter les données pour calculer les contrôles en cours
+      const processedData = (data || []).map(agent => ({
+        ...agent,
+        controles_en_cours: agent.controles_en_cours?.[0]?.count || 0,
+        dernier_controle: agent.dernier_controle?.[0]?.date_realisation || null
+      }));
+      
+      setAgents(processedData);
       setAgents(data);
       setError(null);
     } catch (err) {
@@ -29,20 +48,20 @@ export function useAgents() {
     }
   };
 
-  const createAgent = async (agent: Omit<Agent, 'id' | 'created_at' | 'updated_at'>) => {
+  const createAgent = async (agent: any) => {
     try {
       const newAgent = await AgentService.create(agent);
-      setAgents(prev => [...prev, newAgent]);
+      await fetchAgents(); // Recharger toutes les données pour avoir les statistiques à jour
       return newAgent;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de l\'agent');
     }
   };
 
-  const updateAgent = async (id: string, agent: Partial<Agent>) => {
+  const updateAgent = async (id: string, agent: any) => {
     try {
       const updatedAgent = await AgentService.update(id, agent);
-      setAgents(prev => prev.map(a => a.id === id ? updatedAgent : a));
+      await fetchAgents(); // Recharger toutes les données
       return updatedAgent;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de l\'agent');
@@ -52,7 +71,7 @@ export function useAgents() {
   const deleteAgent = async (id: string) => {
     try {
       await AgentService.delete(id);
-      setAgents(prev => prev.filter(a => a.id !== id));
+      await fetchAgents(); // Recharger toutes les données
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'agent');
     }
