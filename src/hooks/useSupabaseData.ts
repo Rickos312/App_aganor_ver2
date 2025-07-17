@@ -1,14 +1,40 @@
 import { useState, useEffect } from 'react';
 import { 
-  AgentService, 
-  EntrepriseService, 
-  ControleService, 
-  FactureService,
-  Agent,
-  Entreprise,
-  Controle,
-  Facture
+  supabase
 } from '../lib/supabase';
+
+// Types pour TypeScript
+interface Agent {
+  id: string;
+  numero_matricule?: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone?: string;
+  role: 'inspecteur' | 'superviseur' | 'admin' | 'technicien_qualite' | 'technicien_metrologie';
+  zone?: string;
+  statut: 'actif' | 'inactif' | 'conge';
+  date_embauche?: string;
+  adresse?: string;
+  date_naissance?: string;
+  lieu_naissance?: string;
+  nationalite?: string;
+  situation_matrimoniale?: 'celibataire' | 'marie' | 'divorce' | 'veuf';
+  nombre_enfants?: number;
+  niveau_etude?: string;
+  diplomes?: string[];
+  certifications?: string[];
+  salaire?: number;
+  type_contrat?: 'cdi' | 'cdd' | 'stage' | 'consultant';
+  date_fin_contrat?: string;
+  superviseur?: string;
+  latitude?: number;
+  longitude?: number;
+  created_at?: string;
+  updated_at?: string;
+  controles_en_cours?: number;
+  dernier_controle?: string;
+}
 
 // Hook pour les agents
 export function useAgents() {
@@ -19,26 +45,16 @@ export function useAgents() {
   const fetchAgents = async () => {
     try {
       setLoading(true);
-      // Récupérer les agents avec les contrôles en cours
       const { data, error } = await supabase
         .from('agents')
         .select(`
           *,
-          controles_en_cours:controles!agent_id(count),
-          dernier_controle:controles!agent_id(date_realisation)
+          controles(count)
         `)
         .order('nom', { ascending: true });
       
       if (error) throw error;
       
-      // Traiter les données pour calculer les contrôles en cours
-      const processedData = (data || []).map(agent => ({
-        ...agent,
-        controles_en_cours: agent.controles_en_cours?.[0]?.count || 0,
-        dernier_controle: agent.dernier_controle?.[0]?.date_realisation || null
-      }));
-      
-      setAgents(processedData);
       setAgents(data);
       setError(null);
     } catch (err) {
@@ -50,9 +66,16 @@ export function useAgents() {
 
   const createAgent = async (agent: any) => {
     try {
-      const newAgent = await AgentService.create(agent);
+      const { data, error } = await supabase
+        .from('agents')
+        .insert([agent])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchAgents(); // Recharger toutes les données pour avoir les statistiques à jour
-      return newAgent;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de l\'agent');
     }
@@ -60,9 +83,17 @@ export function useAgents() {
 
   const updateAgent = async (id: string, agent: any) => {
     try {
-      const updatedAgent = await AgentService.update(id, agent);
+      const { data, error } = await supabase
+        .from('agents')
+        .update(agent)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchAgents(); // Recharger toutes les données
-      return updatedAgent;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de l\'agent');
     }
@@ -70,7 +101,13 @@ export function useAgents() {
 
   const deleteAgent = async (id: string) => {
     try {
-      await AgentService.delete(id);
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
       await fetchAgents(); // Recharger toutes les données
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'agent');
@@ -101,8 +138,17 @@ export function useEntreprises() {
   const fetchEntreprises = async () => {
     try {
       setLoading(true);
-      const data = await EntrepriseService.getAll();
-      setEntreprises(data);
+      const { data, error } = await supabase
+        .from('entreprises')
+        .select(`
+          *,
+          instruments (*)
+        `)
+        .order('nom', { ascending: true });
+      
+      if (error) throw error;
+      
+      setEntreprises(data || []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des entreprises');
@@ -111,21 +157,36 @@ export function useEntreprises() {
     }
   };
 
-  const createEntreprise = async (entreprise: Omit<Entreprise, 'id' | 'created_at' | 'updated_at'>) => {
+  const createEntreprise = async (entreprise: any) => {
     try {
-      const newEntreprise = await EntrepriseService.create(entreprise);
+      const { data, error } = await supabase
+        .from('entreprises')
+        .insert([entreprise])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchEntreprises(); // Recharger pour avoir les instruments
-      return newEntreprise;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de l\'entreprise');
     }
   };
 
-  const updateEntreprise = async (id: string, entreprise: Partial<Entreprise>) => {
+  const updateEntreprise = async (id: string, entreprise: any) => {
     try {
-      const updatedEntreprise = await EntrepriseService.update(id, entreprise);
+      const { data, error } = await supabase
+        .from('entreprises')
+        .update(entreprise)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchEntreprises(); // Recharger pour avoir les données complètes
-      return updatedEntreprise;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de l\'entreprise');
     }
@@ -133,7 +194,13 @@ export function useEntreprises() {
 
   const deleteEntreprise = async (id: string) => {
     try {
-      await EntrepriseService.delete(id);
+      const { error } = await supabase
+        .from('entreprises')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
       setEntreprises(prev => prev.filter(e => e.id !== id));
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'entreprise');
@@ -164,8 +231,18 @@ export function useControles() {
   const fetchControles = async () => {
     try {
       setLoading(true);
-      const data = await ControleService.getAll();
-      setControles(data);
+      const { data, error } = await supabase
+        .from('controles')
+        .select(`
+          *,
+          entreprises (nom, adresse),
+          agents (nom, prenom, role)
+        `)
+        .order('date_planifiee', { ascending: false });
+      
+      if (error) throw error;
+      
+      setControles(data || []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des contrôles');
@@ -174,21 +251,36 @@ export function useControles() {
     }
   };
 
-  const createControle = async (controle: Omit<Controle, 'id' | 'created_at' | 'updated_at'>) => {
+  const createControle = async (controle: any) => {
     try {
-      const newControle = await ControleService.create(controle);
+      const { data, error } = await supabase
+        .from('controles')
+        .insert([controle])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchControles(); // Recharger pour avoir les données complètes
-      return newControle;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création du contrôle');
     }
   };
 
-  const updateControle = async (id: string, controle: Partial<Controle>) => {
+  const updateControle = async (id: string, controle: any) => {
     try {
-      const updatedControle = await ControleService.update(id, controle);
+      const { data, error } = await supabase
+        .from('controles')
+        .update(controle)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchControles(); // Recharger pour avoir les données complètes
-      return updatedControle;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour du contrôle');
     }
@@ -196,7 +288,13 @@ export function useControles() {
 
   const deleteControle = async (id: string) => {
     try {
-      await ControleService.delete(id);
+      const { error } = await supabase
+        .from('controles')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
       setControles(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression du contrôle');
@@ -205,7 +303,18 @@ export function useControles() {
 
   const addInstruments = async (controleId: string, instrumentIds: string[]) => {
     try {
-      await ControleService.addInstruments(controleId, instrumentIds);
+      const controleInstruments = instrumentIds.map(instrumentId => ({
+        controle_id: controleId,
+        instrument_id: instrumentId,
+        resultat: 'en_attente' as const
+      }));
+
+      const { error } = await supabase
+        .from('controle_instruments')
+        .insert(controleInstruments);
+      
+      if (error) throw error;
+      
       await fetchControles(); // Recharger pour avoir les données complètes
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de l\'ajout des instruments');
@@ -237,8 +346,18 @@ export function useFactures() {
   const fetchFactures = async () => {
     try {
       setLoading(true);
-      const data = await FactureService.getAll();
-      setFactures(data);
+      const { data, error } = await supabase
+        .from('factures')
+        .select(`
+          *,
+          entreprises (nom, adresse, telephone, email),
+          controles (type_controle, date_realisation)
+        `)
+        .order('date_emission', { ascending: false });
+      
+      if (error) throw error;
+      
+      setFactures(data || []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des factures');
@@ -247,21 +366,36 @@ export function useFactures() {
     }
   };
 
-  const createFacture = async (facture: Omit<Facture, 'id' | 'created_at' | 'updated_at'>) => {
+  const createFacture = async (facture: any) => {
     try {
-      const newFacture = await FactureService.create(facture);
+      const { data, error } = await supabase
+        .from('factures')
+        .insert([facture])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchFactures(); // Recharger pour avoir les données complètes
-      return newFacture;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de la facture');
     }
   };
 
-  const updateFacture = async (id: string, facture: Partial<Facture>) => {
+  const updateFacture = async (id: string, facture: any) => {
     try {
-      const updatedFacture = await FactureService.update(id, facture);
+      const { data, error } = await supabase
+        .from('factures')
+        .update(facture)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchFactures(); // Recharger pour avoir les données complètes
-      return updatedFacture;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de la facture');
     }
@@ -269,7 +403,13 @@ export function useFactures() {
 
   const deleteFacture = async (id: string) => {
     try {
-      await FactureService.delete(id);
+      const { error } = await supabase
+        .from('factures')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
       setFactures(prev => prev.filter(f => f.id !== id));
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de la facture');
@@ -281,9 +421,21 @@ export function useFactures() {
     numero_transaction?: string;
   }) => {
     try {
-      const updatedFacture = await FactureService.markAsPaid(id, paymentData);
+      const { data, error } = await supabase
+        .from('factures')
+        .update({
+          statut: 'payee',
+          date_paiement: new Date().toISOString().split('T')[0],
+          ...paymentData
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
       await fetchFactures(); // Recharger pour avoir les données complètes
-      return updatedFacture;
+      return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erreur lors du marquage comme payée');
     }
@@ -321,12 +473,17 @@ export function useStats() {
       setLoading(true);
       
       // Récupérer les statistiques de chaque module
-      const [agents, entreprises, controles, factures] = await Promise.all([
-        AgentService.getAll(),
-        EntrepriseService.getAll(),
-        ControleService.getAll(),
-        FactureService.getAll()
+      const [agentsRes, entreprisesRes, controlesRes, facturesRes] = await Promise.all([
+        supabase.from('agents').select('*'),
+        supabase.from('entreprises').select('*'),
+        supabase.from('controles').select('*'),
+        supabase.from('factures').select('*')
       ]);
+
+      const agents = agentsRes.data || [];
+      const entreprises = entreprisesRes.data || [];
+      const controles = controlesRes.data || [];
+      const factures = facturesRes.data || [];
 
       // Calculer les statistiques
       const agentStats = {
