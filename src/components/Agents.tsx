@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
 import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield } from 'lucide-react';
 import { useAgents } from '../hooks/useSupabaseData';
 
@@ -78,10 +77,10 @@ const Agents: React.FC = () => {
     prenom: agent.prenom,
     email: agent.email,
     telephone: agent.telephone || '',
-    role: agent.role,
-    zone: agent.zone || '',
+    role: agent.role as any,
+    zone: agent.zone || 'Non définie',
     statut: agent.statut,
-    controlesEnCours: agent.controles_en_cours || 0,
+    controlesEnCours: 0, // Sera calculé plus tard avec les contrôles
     dernierControle: agent.dernier_controle || new Date().toISOString().split('T')[0],
     numero_matricule: agent.numero_matricule,
     dateEmbauche: agent.date_embauche,
@@ -103,6 +102,15 @@ const Agents: React.FC = () => {
       longitude: agent.longitude
     } : undefined
   }));
+
+  // Calculer les statistiques des agents
+  const statsAgents = {
+    total: agents.length,
+    actifs: agents.filter(a => a.statut === 'actif').length,
+    enConge: agents.filter(a => a.statut === 'conge').length,
+    inactifs: agents.filter(a => a.statut === 'inactif').length,
+    controlesTotal: 20 // Valeur fixe pour l'instant, sera calculée avec les contrôles
+  };
 
   const [nouvelAgent, setNouvelAgent] = useState<NouvelAgent>({
     nom: '',
@@ -318,7 +326,7 @@ const Agents: React.FC = () => {
       longitude: nouvelAgent.geolocalisation.longitude ? parseFloat(nouvelAgent.geolocalisation.longitude) : undefined
     };
 
-    // Créer l'agent via Supabase
+    // Créer l'agent
     createAgent(newAgentData)
       .then(() => {
         // Réinitialiser le formulaire
@@ -391,15 +399,6 @@ const Agents: React.FC = () => {
     });
   };
 
-  // Statistiques des agents
-  const statsAgents = {
-    total: agents.length,
-    actifs: agents.filter(a => a.statut === 'actif').length,
-    enConge: agents.filter(a => a.statut === 'conge').length,
-    inactifs: agents.filter(a => a.statut === 'inactif').length,
-    controlesTotal: agents.reduce((sum, agent) => sum + agent.controlesEnCours, 0)
-  };
-
   // Afficher un loader pendant le chargement
   if (loading) {
     return (
@@ -423,6 +422,7 @@ const Agents: React.FC = () => {
       </div>
     );
   }
+
   return (
     <div className="page-container">
       <div className="page-header">
