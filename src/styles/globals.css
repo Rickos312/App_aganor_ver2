@@ -2538,45 +2538,6 @@ body {
   color: var(--gray-400);
 }
 
-/* Loading et Error states */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-  text-align: center;
-}
-
-.error-container p {
-  color: #ef4444;
-  font-weight: 500;
-}
-
 /* Animations */
 @keyframes fadeInUp {
   from {
@@ -2607,6 +2568,11 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .stat-card, .recent-controls, .quick-actions, .page-container {

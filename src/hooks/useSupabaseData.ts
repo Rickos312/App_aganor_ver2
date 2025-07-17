@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
-import { supabase, type Agent } from '../lib/supabase';
+import { 
+  AgentService, 
+  EntrepriseService, 
+  ControleService, 
+  FactureService,
+  Agent,
+  Entreprise,
+  Controle,
+  Facture
+} from '../lib/supabase';
 
 // Hook pour les agents
 export function useAgents() {
@@ -10,154 +19,42 @@ export function useAgents() {
   const fetchAgents = async () => {
     try {
       setLoading(true);
+      const data = await AgentService.getAll();
+      setAgents(data);
       setError(null);
-      
-      // Vérifier si Supabase est configuré
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        throw new Error('Configuration Supabase manquante. Veuillez configurer VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY');
-      }
-
-      const { data, error } = await supabase
-        .from('agents')
-        .select('*')
-        .order('nom', { ascending: true });
-      
-      if (error) {
-        console.error('Erreur Supabase:', error);
-        throw error;
-      }
-      
-      setAgents(data || []);
     } catch (err) {
-      console.error('Erreur lors du chargement des agents:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des agents');
-      // En cas d'erreur, utiliser des données de test
-      setAgents([
-        {
-          id: '1',
-          nom: 'MBADINGA',
-          prenom: 'Jean-Claude',
-          email: 'jc.mbadinga@aganor.ga',
-          telephone: '+241 06 12 34 56',
-          role: 'inspecteur',
-          zone: 'Libreville Nord',
-          statut: 'actif',
-          numero_matricule: 'AG2025001'
-        },
-        {
-          id: '2',
-          nom: 'BONGO',
-          prenom: 'Marie-Claire',
-          email: 'mc.bongo@aganor.ga',
-          telephone: '+241 06 23 45 67',
-          role: 'superviseur',
-          zone: 'Port-Gentil',
-          statut: 'actif',
-          numero_matricule: 'AG2025002'
-        },
-        {
-          id: '3',
-          nom: 'NDONG',
-          prenom: 'Martin',
-          email: 'm.ndong@aganor.ga',
-          telephone: '+241 06 34 56 78',
-          role: 'inspecteur',
-          zone: 'Libreville Sud',
-          statut: 'conge',
-          numero_matricule: 'AG2025003'
-        }
-      ] as Agent[]);
     } finally {
       setLoading(false);
     }
   };
 
-  const createAgent = async (agent: Partial<Agent>) => {
+  const createAgent = async (agent: Omit<Agent, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Vérifier si Supabase est configuré
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        // Simulation locale si Supabase n'est pas configuré
-        const newAgent = {
-          ...agent,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString()
-        } as Agent;
-        
-        setAgents(prev => [...prev, newAgent]);
-        return newAgent;
-      }
-
-      const { data, error } = await supabase
-        .from('agents')
-        .insert([agent])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      await fetchAgents(); // Recharger toutes les données
-      return data;
-    } catch (err) {
-      console.error('Erreur lors de la création de l\'agent:', err);
-      
-      // Fallback : ajouter localement si Supabase échoue
-      const newAgent = {
-        ...agent,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString()
-      } as Agent;
-      
+      const newAgent = await AgentService.create(agent);
       setAgents(prev => [...prev, newAgent]);
       return newAgent;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de l\'agent');
     }
   };
 
   const updateAgent = async (id: string, agent: Partial<Agent>) => {
     try {
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        // Simulation locale
-        setAgents(prev => prev.map(a => a.id === id ? { ...a, ...agent } : a));
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('agents')
-        .update(agent)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      await fetchAgents();
-      return data;
+      const updatedAgent = await AgentService.update(id, agent);
+      setAgents(prev => prev.map(a => a.id === id ? updatedAgent : a));
+      return updatedAgent;
     } catch (err) {
-      console.error('Erreur lors de la mise à jour de l\'agent:', err);
-      // Fallback local
-      setAgents(prev => prev.map(a => a.id === id ? { ...a, ...agent } : a));
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de l\'agent');
     }
   };
 
   const deleteAgent = async (id: string) => {
     try {
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        // Simulation locale
-        setAgents(prev => prev.filter(a => a.id !== id));
-        return;
-      }
-
-      const { error } = await supabase
-        .from('agents')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      
+      await AgentService.delete(id);
       setAgents(prev => prev.filter(a => a.id !== id));
     } catch (err) {
-      console.error('Erreur lors de la suppression de l\'agent:', err);
-      // Fallback local
-      setAgents(prev => prev.filter(a => a.id !== id));
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'agent');
     }
   };
 
@@ -176,6 +73,219 @@ export function useAgents() {
   };
 }
 
+// Hook pour les entreprises
+export function useEntreprises() {
+  const [entreprises, setEntreprises] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEntreprises = async () => {
+    try {
+      setLoading(true);
+      const data = await EntrepriseService.getAll();
+      setEntreprises(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des entreprises');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createEntreprise = async (entreprise: Omit<Entreprise, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const newEntreprise = await EntrepriseService.create(entreprise);
+      await fetchEntreprises(); // Recharger pour avoir les instruments
+      return newEntreprise;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de l\'entreprise');
+    }
+  };
+
+  const updateEntreprise = async (id: string, entreprise: Partial<Entreprise>) => {
+    try {
+      const updatedEntreprise = await EntrepriseService.update(id, entreprise);
+      await fetchEntreprises(); // Recharger pour avoir les données complètes
+      return updatedEntreprise;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de l\'entreprise');
+    }
+  };
+
+  const deleteEntreprise = async (id: string) => {
+    try {
+      await EntrepriseService.delete(id);
+      setEntreprises(prev => prev.filter(e => e.id !== id));
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'entreprise');
+    }
+  };
+
+  useEffect(() => {
+    fetchEntreprises();
+  }, []);
+
+  return {
+    entreprises,
+    loading,
+    error,
+    refetch: fetchEntreprises,
+    createEntreprise,
+    updateEntreprise,
+    deleteEntreprise
+  };
+}
+
+// Hook pour les contrôles
+export function useControles() {
+  const [controles, setControles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchControles = async () => {
+    try {
+      setLoading(true);
+      const data = await ControleService.getAll();
+      setControles(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des contrôles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createControle = async (controle: Omit<Controle, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const newControle = await ControleService.create(controle);
+      await fetchControles(); // Recharger pour avoir les données complètes
+      return newControle;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création du contrôle');
+    }
+  };
+
+  const updateControle = async (id: string, controle: Partial<Controle>) => {
+    try {
+      const updatedControle = await ControleService.update(id, controle);
+      await fetchControles(); // Recharger pour avoir les données complètes
+      return updatedControle;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour du contrôle');
+    }
+  };
+
+  const deleteControle = async (id: string) => {
+    try {
+      await ControleService.delete(id);
+      setControles(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression du contrôle');
+    }
+  };
+
+  const addInstruments = async (controleId: string, instrumentIds: string[]) => {
+    try {
+      await ControleService.addInstruments(controleId, instrumentIds);
+      await fetchControles(); // Recharger pour avoir les données complètes
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de l\'ajout des instruments');
+    }
+  };
+
+  useEffect(() => {
+    fetchControles();
+  }, []);
+
+  return {
+    controles,
+    loading,
+    error,
+    refetch: fetchControles,
+    createControle,
+    updateControle,
+    deleteControle,
+    addInstruments
+  };
+}
+
+// Hook pour les factures
+export function useFactures() {
+  const [factures, setFactures] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFactures = async () => {
+    try {
+      setLoading(true);
+      const data = await FactureService.getAll();
+      setFactures(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des factures');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createFacture = async (facture: Omit<Facture, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const newFacture = await FactureService.create(facture);
+      await fetchFactures(); // Recharger pour avoir les données complètes
+      return newFacture;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de la facture');
+    }
+  };
+
+  const updateFacture = async (id: string, facture: Partial<Facture>) => {
+    try {
+      const updatedFacture = await FactureService.update(id, facture);
+      await fetchFactures(); // Recharger pour avoir les données complètes
+      return updatedFacture;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour de la facture');
+    }
+  };
+
+  const deleteFacture = async (id: string) => {
+    try {
+      await FactureService.delete(id);
+      setFactures(prev => prev.filter(f => f.id !== id));
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la suppression de la facture');
+    }
+  };
+
+  const markAsPaid = async (id: string, paymentData: {
+    mode_paiement: string;
+    numero_transaction?: string;
+  }) => {
+    try {
+      const updatedFacture = await FactureService.markAsPaid(id, paymentData);
+      await fetchFactures(); // Recharger pour avoir les données complètes
+      return updatedFacture;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Erreur lors du marquage comme payée');
+    }
+  };
+
+  useEffect(() => {
+    fetchFactures();
+  }, []);
+
+  return {
+    factures,
+    loading,
+    error,
+    refetch: fetchFactures,
+    createFacture,
+    updateFacture,
+    deleteFacture,
+    markAsPaid
+  };
+}
+
 // Hook pour les statistiques générales
 export function useStats() {
   const [stats, setStats] = useState({
@@ -191,31 +301,13 @@ export function useStats() {
     try {
       setLoading(true);
       
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        // Données de test si Supabase n'est pas configuré
-        setStats({
-          agents: { total: 11, actifs: 9, inactifs: 0, en_conge: 2 },
-          entreprises: { total: 9, conformes: 5, non_conformes: 2, en_attente: 2 },
-          controles: { total: 25, planifies: 5, en_cours: 20, termines: 0 },
-          factures: { total: 4, en_attente: 2, payees: 1, en_retard: 1, montant_total: 455000 }
-        });
-        setError(null);
-        setLoading(false);
-        return;
-      }
-      
       // Récupérer les statistiques de chaque module
-      const [agentsRes, entreprisesRes, controlesRes, facturesRes] = await Promise.all([
-        supabase.from('agents').select('*'),
-        supabase.from('entreprises').select('*'),
-        supabase.from('controles').select('*'),
-        supabase.from('factures').select('*')
+      const [agents, entreprises, controles, factures] = await Promise.all([
+        AgentService.getAll(),
+        EntrepriseService.getAll(),
+        ControleService.getAll(),
+        FactureService.getAll()
       ]);
-
-      const agents = agentsRes.data || [];
-      const entreprises = entreprisesRes.data || [];
-      const controles = controlesRes.data || [];
-      const factures = facturesRes.data || [];
 
       // Calculer les statistiques
       const agentStats = {
@@ -244,7 +336,7 @@ export function useStats() {
         en_attente: factures.filter(f => f.statut === 'en_attente').length,
         payees: factures.filter(f => f.statut === 'payee').length,
         en_retard: factures.filter(f => f.statut === 'en_retard').length,
-        montant_total: factures.reduce((sum, f) => sum + (f.montant_ttc || 0), 0)
+        montant_total: factures.reduce((sum, f) => sum + f.montant_ttc, 0)
       };
 
       setStats({
@@ -256,16 +348,7 @@ export function useStats() {
       
       setError(null);
     } catch (err) {
-      console.error('Erreur lors du chargement des statistiques:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des statistiques');
-      
-      // Données de fallback
-      setStats({
-        agents: { total: 11, actifs: 9, inactifs: 0, en_conge: 2 },
-        entreprises: { total: 9, conformes: 5, non_conformes: 2, en_attente: 2 },
-        controles: { total: 25, planifies: 5, en_cours: 20, termines: 0 },
-        factures: { total: 4, en_attente: 2, payees: 1, en_retard: 1, montant_total: 455000 }
-      });
     } finally {
       setLoading(false);
     }
