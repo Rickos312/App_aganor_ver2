@@ -12,8 +12,8 @@ import controlesRoutes from './routes/controles.js';
 import facturesRoutes from './routes/factures.js';
 import dashboardRoutes from './routes/dashboard.js';
 
-// Database
-import { initDatabase } from './database/init.js';
+// Supabase client
+import { supabase } from './lib/supabase.js';
 
 dotenv.config();
 
@@ -51,6 +51,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Supabase health check
+app.get('/api/health/supabase', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('agents').select('count', { count: 'exact', head: true });
+    
+    if (error) {
+      throw error;
+    }
+    
+    res.json({
+      status: 'OK',
+      message: 'Connexion Supabase opérationnelle',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Erreur de connexion Supabase',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -68,16 +92,23 @@ app.use('*', (req, res) => {
   });
 });
 
-// Initialize database and start server
+// Test Supabase connection and start server
 async function startServer() {
   try {
-    await initDatabase();
-    console.log('✅ Base de données initialisée');
+    // Test de connexion Supabase
+    const { data, error } = await supabase.from('agents').select('count', { count: 'exact', head: true });
+    
+    if (error) {
+      throw new Error(`Erreur de connexion Supabase: ${error.message}`);
+    }
+    
+    console.log('✅ Connexion Supabase établie');
     
     const server = app.listen(PORT, () => {
       console.log(`🚀 Serveur AGANOR démarré sur le port ${PORT}`);
       console.log(`📊 API disponible sur http://localhost:${PORT}/api`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🗄️ Supabase check: http://localhost:${PORT}/api/health/supabase`);
     });
 
     // Handle server errors
@@ -94,6 +125,7 @@ async function startServer() {
 
   } catch (error) {
     console.error('❌ Erreur lors du démarrage du serveur:', error);
+    console.error('💡 Vérifiez vos variables d\'environnement Supabase dans le fichier .env');
     process.exit(1);
   }
 }
