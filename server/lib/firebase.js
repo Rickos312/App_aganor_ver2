@@ -1,5 +1,8 @@
 import admin from 'firebase-admin';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Configuration Firebase Admin
 const firebaseConfig = {
@@ -9,6 +12,9 @@ const firebaseConfig = {
 };
 
 // Initialiser Firebase Admin (en mode émulateur pour le développement)
+// Utilisez la clé de compte de service depuis les variables d'environnement
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_JSON);
+firebaseConfig.credential = admin.credential.cert(serviceAccount);
 if (!admin.apps.length) {
   admin.initializeApp(firebaseConfig);
 }
