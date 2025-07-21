@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Settings, LogOut } from 'lucide-react';
+import { Mail, Settings, LogOut } from 'lucide-react';
 
 interface User {
   nom: string;
@@ -10,11 +10,15 @@ interface User {
 interface HeaderProps {
   user: User;
   onLogout?: () => void;
+  isAuthenticated?: boolean;
+  unreadMessages?: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false, unreadMessages = 0 }) => {
   return (
     <header className="app-header">
+      <div className="header-background-gradient"></div>
+      
       <div className="header-left">
         <div className="logo-container">
           <img src="/aganor-logo.png" alt="AGANOR" className="logo-image" />
@@ -25,15 +29,20 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
         </div>
       </div>
       
+      <div className="header-center">
+        <div className="notifications-envelope">
+          <Mail size={24} />
+          {unreadMessages > 0 && (
+            <span className="notification-badge">{unreadMessages}</span>
+          )}
+        </div>
+      </div>
+      
       <div className="header-right">
         <div className="header-actions">
-          <button className="header-btn">
+          <button className="header-btn settings-btn" title="Paramètres">
             <Settings size={20} />
           </button>
-          <div className="notifications">
-            <Bell size={20} />
-            <span className="notification-badge">3</span>
-          </div>
           {onLogout && (
             <button className="header-btn logout-btn" onClick={onLogout} title="Se déconnecter">
               <LogOut size={20} />
@@ -46,8 +55,11 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             <span className="user-name">{user.nom}</span>
             <span className="user-role">{user.role}</span>
           </div>
-          <div className="user-avatar">
-            {user.avatar}
+          <div className="user-avatar-container">
+            <div className="user-avatar">
+              {user.avatar}
+            </div>
+            <div className={`connection-status-dot ${isAuthenticated ? 'connected' : 'disconnected'}`}></div>
           </div>
         </div>
       </div>

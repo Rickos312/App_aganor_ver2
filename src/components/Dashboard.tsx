@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Building2, CheckSquare, CreditCard, AlertTriangle } from 'lucide-react';
+import { TrendingUp, Building2, CheckSquare, CreditCard, AlertTriangle, QrCode, FileText } from 'lucide-react';
 import StatCard from './ui/StatCard';
 import RecentControls from './dashboard/RecentControls';
 import QuickActions from './dashboard/QuickActions';
@@ -14,33 +14,47 @@ const Dashboard: React.FC = () => {
       color: 'blue'
     },
     {
-      title: 'Contrôles en cours',
-      value: '23',
+      title: 'Taux de contrôle mensuel',
+      value: '87.5%',
       icon: CheckSquare,
       trend: '+5%',
       color: 'green'
     },
     {
-      title: 'Factures en attente',
-      value: '45',
-      icon: CreditCard,
-      trend: '-8%',
-      color: 'orange'
-    },
-    {
-      title: 'Taux de conformité',
-      value: '87.5%',
+      title: 'Instruments conformes',
+      value: '92.3%',
       icon: TrendingUp,
       trend: '+2.1%',
       color: 'purple'
+    },
+    {
+      title: 'QR codes édités ce mois',
+      value: '156',
+      icon: QrCode,
+      trend: '+18%',
+      color: 'orange'
+    },
+    {
+      title: 'Total devis édités',
+      value: '89',
+      icon: FileText,
+      trend: '+7%',
+      color: 'indigo'
+    },
+    {
+      title: 'Taux de conformité global',
+      value: '89.2%',
+      icon: AlertTriangle,
+      trend: '+3.2%',
+      color: 'emerald'
     }
   ];
 
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Tableau de bord</h1>
-        <p>Vue d'ensemble des activités de contrôle métrologique AGANOR</p>
+        <h1>CRM : Vue d'ensemble des activités de contrôle de la Métrologie Légale</h1>
+        <p>Tableau de bord modulant en fonction des flux des activités</p>
       </div>
 
       <div className="stats-grid">
