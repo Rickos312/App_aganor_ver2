@@ -90,9 +90,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           {/* Header avec logo et titre */}
           <div className="login-header">
             <div className="logo-container">
-              <div className="logo-circle">
-                <div className="logo-text">AGANOR</div>
-              </div>
+              <img src="/aganor-logo.png" alt="AGANOR" className="aganor-logo" />
             </div>
             <h1 className="login-title">CRM Métrologie</h1>
             <p className="login-subtitle">Votre passerelle vers la Qualité</p>

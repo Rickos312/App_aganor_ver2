@@ -99,37 +99,20 @@
   margin-bottom: 1.5rem;
 }
 
-.logo-circle {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
+.aganor-logo {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
+  filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.15));
+  transition: transform 0.3s ease;
 }
 
-.logo-circle::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
-}
-
-.logo-text {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: white;
-  letter-spacing: 1px;
-  position: relative;
-  z-index: 2;
+.aganor-logo:hover {
+  transform: scale(1.05);
 }
 
 .login-title {
@@ -383,13 +366,9 @@
     font-size: 1.75rem;
   }
   
-  .logo-circle {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .logo-text {
-    font-size: 1rem;
+  .aganor-logo {
+    width: 100px;
+    height: 100px;
   }
   
   .demo-info {
