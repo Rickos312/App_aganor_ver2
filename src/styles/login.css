@@ -287,6 +287,31 @@
   transform: none !important;
 }
 
+/* Bouton pour basculer entre connexion et inscription */
+.switch-mode-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: #667eea;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.switch-mode-button:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
+.switch-mode-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .spinner {
   animation: spin 1s linear infinite;
 }
@@ -360,6 +385,8 @@
     padding: 2rem;
     margin: 0;
     border-radius: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
   }
   
   .login-title {
@@ -388,6 +415,20 @@
   
   .demo-credentials {
     font-size: 0.8rem;
+  }
+  
+  .form-group {
+    gap: 0.4rem;
+  }
+  
+  .form-group label {
+    font-size: 0.85rem;
+  }
+  
+  .input-container input,
+  .input-container select {
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    font-size: 0.9rem;
   }
 }
 

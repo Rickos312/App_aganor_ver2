@@ -163,4 +163,134 @@ router.post('/change-password', authenticateToken, async (req, res) => {
   }
 });
 
+// Inscription d'un nouvel utilisateur
+router.post('/register', async (req, res) => {
+  try {
+    const {
+      nom, prenom, email, password, telephone, role, zone,
+      date_embauche, adresse, date_naissance, lieu_naissance,
+      nationalite, situation_matrimoniale, nombre_enfants,
+      niveau_etude, diplomes, certifications, salaire,
+      type_contrat, date_fin_contrat, superviseur,
+      latitude, longitude
+    } = req.body;
+
+    // Validation des champs obligatoires
+    if (!nom || !prenom || !email || !password || !role) {
+      return res.status(400).json({ 
+        error: 'Nom, prénom, email, mot de passe et rôle sont obligatoires' 
+      });
+    }
+
+    // Validation du mot de passe
+    if (password.length < 6) {
+      return res.status(400).json({ 
+        error: 'Le mot de passe doit contenir au moins 6 caractères' 
+      });
+    }
+
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Format d\'email invalide' });
+    }
+
+    // Validation du rôle
+    const validRoles = ['inspecteur', 'superviseur', 'admin', 'technicien_qualite', 'technicien_metrologie'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Rôle invalide' });
+    }
+
+    // Vérifier l'unicité de l'email
+    const existingAgent = await getQuery('SELECT id FROM agents WHERE email = ?', [email]);
+    if (existingAgent) {
+      return res.status(400).json({ error: 'Un compte avec cet email existe déjà' });
+    }
+
+    // Générer un numéro de matricule automatique
+    const year = new Date().getFullYear();
+    const lastAgent = await getQuery(
+      'SELECT numero_matricule FROM agents WHERE numero_matricule LIKE ? ORDER BY id DESC LIMIT 1',
+      [`AG${year}%`]
+    );
+    
+    let nextNumber = 1;
+    if (lastAgent && lastAgent.numero_matricule) {
+      const lastNumber = parseInt(lastAgent.numero_matricule.slice(-4));
+      nextNumber = lastNumber + 1;
+    }
+    
+    const numeroMatricule = `AG${year}${nextNumber.toString().padStart(4, '0')}`;
+
+    // Hasher le mot de passe
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Insérer le nouvel agent
+    const sql = `
+      INSERT INTO agents (
+        numero_matricule, nom, prenom, email, telephone, role, zone, statut,
+        date_embauche, adresse, date_naissance, lieu_naissance, nationalite,
+        situation_matrimoniale, nombre_enfants, niveau_etude, diplomes,
+        certifications, salaire, type_contrat, date_fin_contrat, superviseur,
+        latitude, longitude, password_hash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const result = await runQuery(sql, [
+      numeroMatricule, nom, prenom, email, telephone, role, zone, 'actif',
+      date_embauche, adresse, date_naissance, lieu_naissance, nationalite || 'Gabonaise',
+      situation_matrimoniale, nombre_enfants || 0, niveau_etude,
+      JSON.stringify(diplomes || []), JSON.stringify(certifications || []),
+      salaire, type_contrat, date_fin_contrat, superviseur,
+      latitude, longitude, passwordHash
+    ]);
+
+    // Log de l'activité
+    await runQuery(
+      'INSERT INTO activity_logs (agent_id, action, entity_type, entity_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?)',
+      [result.id, 'REGISTER', 'AGENT', result.id, JSON.stringify({ 
+        nom, prenom, email, role, numero_matricule: numeroMatricule 
+      }), req.ip]
+    );
+
+    // Générer le token JWT pour connexion automatique
+    const token = jwt.sign(
+      { 
+        id: result.id, 
+        email: email, 
+        role: role 
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Enregistrer la session
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+    
+    await runQuery('INSERT INTO sessions (agent_id, token, expires_at) VALUES (?, ?, ?)', 
+      [result.id, token, expiresAt.toISOString()]);
+
+    // Retourner les informations du nouvel agent
+    res.status(201).json({
+      message: 'Compte créé avec succès',
+      token,
+      agent: {
+        id: result.id,
+        numero_matricule: numeroMatricule,
+        nom,
+        prenom,
+        email,
+        role,
+        zone,
+        statut: 'actif'
+      }
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la création du compte:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+});
+
 export default router;
