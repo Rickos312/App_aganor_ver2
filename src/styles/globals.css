@@ -220,6 +220,17 @@ body {
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
 }
 
+.user-profile-connected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.user-profile-connected:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
+}
+
 .user-info {
   text-align: right;
 }
