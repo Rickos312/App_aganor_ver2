@@ -40,28 +40,30 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const agents = await allQuery(sql, params);
 
-    // Manually fetch controles_en_cours and dernier_controle for each agent
-    // and parse JSON fields
-    const agentsWithParsedData = await Promise.all(agents.map(async (agent) => {
-      const controlesEnCoursResult = await getQuery(
+    // Ajouter les contrôles en cours et dernier contrôle pour chaque agent
+    const agentsWithData = await Promise.all(agents.map(async (agent) => {
+      // Compter les contrôles en cours
+      const controlesEnCours = await getQuery(
         `SELECT COUNT(*) as count FROM controles WHERE agent_id = ? AND statut IN ('planifie', 'en_cours')`,
         [agent.id]
       );
-      const dernierControleResult = await getQuery(
+      
+      // Récupérer le dernier contrôle
+      const dernierControle = await getQuery(
         `SELECT date_realisation FROM controles WHERE agent_id = ? AND date_realisation IS NOT NULL ORDER BY date_realisation DESC LIMIT 1`,
         [agent.id]
       );
 
       return {
-      ...agent,
-      diplomes: agent.diplomes ? JSON.parse(agent.diplomes) : [],
-      certifications: agent.certifications ? JSON.parse(agent.certifications) : [],
-      controlesEnCours: controlesEnCoursResult ? controlesEnCoursResult.count : 0,
-      dernierControle: dernierControleResult ? dernierControleResult.date_realisation : null,
+        ...agent,
+        diplomes: agent.diplomes ? JSON.parse(agent.diplomes) : [],
+        certifications: agent.certifications ? JSON.parse(agent.certifications) : [],
+        controlesEnCours: controlesEnCours ? controlesEnCours.count : 0,
+        dernierControle: dernierControle ? dernierControle.date_realisation : null,
       };
     }));
     
-    res.json(agentsWithParsedData);
+    res.json(agentsWithData);
 
   } catch (error) {
     console.error('Erreur lors de la récupération des agents:', error);
@@ -80,6 +82,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Agent non trouvé' });
     }
 
+    // Parser les champs JSON
     agent.diplomes = agent.diplomes ? JSON.parse(agent.diplomes) : [];
     agent.certifications = agent.certifications ? JSON.parse(agent.certifications) : [];
     
@@ -134,6 +137,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         latitude, longitude, password_hash
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
+    
     const result = await runQuery(sql, [
       numero_matricule, nom, prenom, email, telephone, role, zone, statut || 'actif',
       date_embauche, adresse, date_naissance, lieu_naissance, nationalite,
@@ -171,7 +175,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       latitude, longitude
     } = req.body;
 
-    // Vérifier que l'agent existe et récupérer ses données
+    // Vérifier que l'agent existe
     const existingAgent = await getQuery('SELECT * FROM agents WHERE id = ?', [id]);
     if (!existingAgent) {
       return res.status(404).json({ error: 'Agent non trouvé' });
@@ -202,6 +206,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         latitude = ?, longitude = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
+    
     await runQuery(sql, [
       numero_matricule, nom, prenom, email, telephone, role, zone, statut,
       date_embauche, adresse, date_naissance, lieu_naissance, nationalite,
@@ -230,14 +235,14 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Vérifier que l'agent existe et récupérer ses données
+    // Vérifier que l'agent existe
     const agent = await getQuery('SELECT * FROM agents WHERE id = ?', [id]);
     if (!agent) {
       return res.status(404).json({ error: 'Agent non trouvé' });
     }
 
     // Empêcher la suppression de son propre compte
-    if (id === req.user.id) {
+    if (id === req.user.id.toString()) {
       return res.status(400).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' });
     }
 
@@ -273,7 +278,6 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 // Obtenir les statistiques des agents
 router.get('/stats/overview', authenticateToken, async (req, res) => {
   try {
-    // Récupérer tous les agents pour calculer les statistiques
     const agents = await allQuery('SELECT * FROM agents');
     
     const stats = {
