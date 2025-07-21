@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import des styles spécifiques */
+@import url('./login.css');
+@import url('./agents.css');
+@import url('./entreprises.css');
+
 /* Variables CSS pour le thème AGANOR inspiré du design moderne */
 :root {
   /* Palette principale inspirée de l'image */
