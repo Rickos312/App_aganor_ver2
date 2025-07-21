@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { getQuery, allQuery, runQuery, complexQuery } from '../lib/firebase.js';
+import { getQuery, allQuery, runQuery } from '../database/init.js';
 import { authenticateToken } from './auth.js';
 
 const router = express.Router();
@@ -17,51 +17,48 @@ const requireAdmin = (req, res, next) => {
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { role, zone, statut } = req.query;
-    
-    // Construire les filtres
-    const filters = {};
-    
+
+    let sql = `SELECT * FROM agents WHERE 1=1`;
+    const params = [];
+
     if (role) {
-      filters.role = role;
+      sql += ' AND role = ?';
+      params.push(role);
     }
-    
+
     if (zone) {
-      filters.zone = zone;
+      sql += ' AND zone = ?';
+      params.push(zone);
     }
-    
+
     if (statut) {
-      filters.statut = statut;
+      sql += ' AND statut = ?';
+      params.push(statut);
     }
-    
-    // Récupérer les agents avec les contrôles associés
-    let query = supabase
-      .from('agents')
-      .select(`
-        *,
-        controles_en_cours:controles!agent_id(count),
-        dernier_controle:controles!agent_id(date_realisation)
-      `)
-      .order('nom', { ascending: true })
-      .order('prenom', { ascending: true });
 
-    // Appliquer les filtres
-    Object.entries(filters).forEach(([key, value]) => {
-      query = query.eq(key, value);
-    });
+    sql += ' ORDER BY nom ASC, prenom ASC';
 
-    const { data: agents, error } = await query;
-    
-    if (error) {
-      throw error;
-    }
-    
-    // Parser les champs JSON
-    const agentsWithParsedData = (agents || []).map(agent => ({
+    const agents = await allQuery(sql, params);
+
+    // Manually fetch controles_en_cours and dernier_controle for each agent
+    // and parse JSON fields
+    const agentsWithParsedData = await Promise.all(agents.map(async (agent) => {
+      const controlesEnCoursResult = await getQuery(
+        `SELECT COUNT(*) as count FROM controles WHERE agent_id = ? AND statut IN ('planifie', 'en_cours')`,
+        [agent.id]
+      );
+      const dernierControleResult = await getQuery(
+        `SELECT date_realisation FROM controles WHERE agent_id = ? AND date_realisation IS NOT NULL ORDER BY date_realisation DESC LIMIT 1`,
+        [agent.id]
+      );
+
+      return {
       ...agent,
-      diplomes: agent.diplomes || [],
-      certifications: agent.certifications || [],
-      controles_en_cours: agent.controles_en_cours?.[0]?.count || 0,
-      dernier_controle: agent.dernier_controle?.[0]?.date_realisation || null
+      diplomes: agent.diplomes ? JSON.parse(agent.diplomes) : [],
+      certifications: agent.certifications ? JSON.parse(agent.certifications) : [],
+      controlesEnCours: controlesEnCoursResult ? controlesEnCoursResult.count : 0,
+      dernierControle: dernierControleResult ? dernierControleResult.date_realisation : null,
+      };
     }));
     
     res.json(agentsWithParsedData);
@@ -76,16 +73,15 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const agent = await getQuery('agents', { id });
-    
+
+    const agent = await getQuery('SELECT * FROM agents WHERE id = ?', [id]);
+
     if (!agent) {
       return res.status(404).json({ error: 'Agent non trouvé' });
     }
-    
-    // Les champs JSON sont déjà parsés par Supabase
-    agent.diplomes = agent.diplomes || [];
-    agent.certifications = agent.certifications || [];
+
+    agent.diplomes = agent.diplomes ? JSON.parse(agent.diplomes) : [];
+    agent.certifications = agent.certifications ? JSON.parse(agent.certifications) : [];
     
     res.json(agent);
 
@@ -112,14 +108,14 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     // Vérifier l'unicité de l'email
-    const existingAgent = await getQuery('agents', { email });
+    const existingAgent = await getQuery('SELECT id FROM agents WHERE email = ?', [email]);
     if (existingAgent) {
       return res.status(400).json({ error: 'Un agent avec cet email existe déjà' });
     }
 
     // Vérifier l'unicité du matricule si fourni
     if (numero_matricule) {
-      const existingMatricule = await getQuery('agents', { numero_matricule });
+      const existingMatricule = await getQuery('SELECT id FROM agents WHERE numero_matricule = ?', [numero_matricule]);
       if (existingMatricule) {
         return res.status(400).json({ error: 'Un agent avec ce matricule existe déjà' });
       }
@@ -129,48 +125,34 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     const defaultPassword = password || 'aganor2025';
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
 
-    const result = await runQuery('agents', {
-      numero_matricule,
-      nom,
-      prenom,
-      email,
-      telephone,
-      role,
-      zone,
-      statut: statut || 'actif',
-      date_embauche,
-      adresse,
-      date_naissance,
-      lieu_naissance,
-      nationalite,
-      situation_matrimoniale,
-      nombre_enfants: nombre_enfants || 0,
-      niveau_etude,
-      diplomes: diplomes || [],
-      certifications: certifications || [],
-      salaire,
-      type_contrat,
-      date_fin_contrat,
-      superviseur,
-      latitude,
-      longitude,
-      password_hash: passwordHash
-    });
+    const sql = `
+      INSERT INTO agents (
+        numero_matricule, nom, prenom, email, telephone, role, zone, statut,
+        date_embauche, adresse, date_naissance, lieu_naissance, nationalite,
+        situation_matrimoniale, nombre_enfants, niveau_etude, diplomes,
+        certifications, salaire, type_contrat, date_fin_contrat, superviseur,
+        latitude, longitude, password_hash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const result = await runQuery(sql, [
+      numero_matricule, nom, prenom, email, telephone, role, zone, statut || 'actif',
+      date_embauche, adresse, date_naissance, lieu_naissance, nationalite,
+      situation_matrimoniale, nombre_enfants || 0, niveau_etude,
+      JSON.stringify(diplomes || []), JSON.stringify(certifications || []),
+      salaire, type_contrat, date_fin_contrat, superviseur,
+      latitude, longitude, passwordHash
+    ]);
 
-    // Log de l'activité dans Supabase
-    await runQuery('activity_logs', {
-      agent_id: req.user.id,
-      action: 'CREATE',
-      entity_type: 'AGENT',
-      entity_id: result.id,
-      details: JSON.stringify({ nom, prenom, email, role })
-    });
+    // Log de l'activité
+    await runQuery(
+      'INSERT INTO activity_logs (agent_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)',
+      [req.user.id, 'CREATE', 'AGENT', result.id, JSON.stringify({ nom, prenom, email, role })]
+    );
 
     res.status(201).json({
       message: 'Agent créé avec succès',
       id: result.id
     });
-
   } catch (error) {
     console.error('Erreur lors de la création de l\'agent:', error);
     res.status(500).json({ error: 'Erreur interne du serveur' });
@@ -189,21 +171,15 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       latitude, longitude
     } = req.body;
 
-    // Vérifier que l'agent existe
-    const existingAgent = await getQuery('agents', { id });
+    // Vérifier que l'agent existe et récupérer ses données
+    const existingAgent = await getQuery('SELECT * FROM agents WHERE id = ?', [id]);
     if (!existingAgent) {
       return res.status(404).json({ error: 'Agent non trouvé' });
     }
 
     // Vérifier l'unicité de l'email (sauf pour l'agent actuel)
     if (email && email !== existingAgent.email) {
-      const { data: emailExists } = await supabase
-        .from('agents')
-        .select('id')
-        .eq('email', email)
-        .neq('id', id)
-        .single();
-        
+      const emailExists = await getQuery('SELECT id FROM agents WHERE email = ? AND id != ?', [email, id]);
       if (emailExists) {
         return res.status(400).json({ error: 'Un agent avec cet email existe déjà' });
       }
@@ -211,54 +187,35 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     // Vérifier l'unicité du matricule (sauf pour l'agent actuel)
     if (numero_matricule && numero_matricule !== existingAgent.numero_matricule) {
-      const { data: matriculeExists } = await supabase
-        .from('agents')
-        .select('id')
-        .eq('numero_matricule', numero_matricule)
-        .neq('id', id)
-        .single();
-        
+      const matriculeExists = await getQuery('SELECT id FROM agents WHERE numero_matricule = ? AND id != ?', [numero_matricule, id]);
       if (matriculeExists) {
         return res.status(400).json({ error: 'Un agent avec ce matricule existe déjà' });
       }
     }
 
-    await runQuery('agents', {
-      id,
-      numero_matricule,
-      nom,
-      prenom,
-      email,
-      telephone,
-      role,
-      zone,
-      statut,
-      date_embauche,
-      adresse,
-      date_naissance,
-      lieu_naissance,
-      nationalite,
-      situation_matrimoniale,
-      nombre_enfants,
-      niveau_etude,
-      diplomes: diplomes || [],
-      certifications: certifications || [],
-      salaire,
-      type_contrat,
-      date_fin_contrat,
-      superviseur,
-      latitude,
-      longitude
-    }, 'update');
+    const sql = `
+      UPDATE agents SET
+        numero_matricule = ?, nom = ?, prenom = ?, email = ?, telephone = ?, role = ?, zone = ?, statut = ?,
+        date_embauche = ?, adresse = ?, date_naissance = ?, lieu_naissance = ?, nationalite = ?,
+        situation_matrimoniale = ?, nombre_enfants = ?, niveau_etude = ?, diplomes = ?,
+        certifications = ?, salaire = ?, type_contrat = ?, date_fin_contrat = ?, superviseur = ?,
+        latitude = ?, longitude = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    await runQuery(sql, [
+      numero_matricule, nom, prenom, email, telephone, role, zone, statut,
+      date_embauche, adresse, date_naissance, lieu_naissance, nationalite,
+      situation_matrimoniale, nombre_enfants, niveau_etude,
+      JSON.stringify(diplomes || []), JSON.stringify(certifications || []),
+      salaire, type_contrat, date_fin_contrat, superviseur,
+      latitude, longitude, id
+    ]);
 
-    // Log de l'activité dans Supabase
-    await runQuery('activity_logs', {
-      agent_id: req.user.id,
-      action: 'UPDATE',
-      entity_type: 'AGENT',
-      entity_id: id,
-      details: JSON.stringify({ nom, prenom, email, role })
-    });
+    // Log de l'activité
+    await runQuery(
+      'INSERT INTO activity_logs (agent_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)',
+      [req.user.id, 'UPDATE', 'AGENT', id, JSON.stringify({ nom, prenom, email, role })]
+    );
 
     res.json({ message: 'Agent mis à jour avec succès' });
 
@@ -273,8 +230,8 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Vérifier que l'agent existe
-    const agent = await getQuery('agents', { id });
+    // Vérifier que l'agent existe et récupérer ses données
+    const agent = await getQuery('SELECT * FROM agents WHERE id = ?', [id]);
     if (!agent) {
       return res.status(404).json({ error: 'Agent non trouvé' });
     }
@@ -284,30 +241,26 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' });
     }
 
-    // Vérifier s'il y a des contrôles en cours
-    const { data: controlesEnCours } = await supabase
-      .from('controles')
-      .select('id', { count: 'exact' })
-      .eq('agent_id', id)
-      .in('statut', ['planifie', 'en_cours']);
+    // Vérifier s'il y a des contrôles planifiés ou en cours pour cet agent
+    const controlesEnCours = await getQuery(
+      'SELECT COUNT(*) as count FROM controles WHERE agent_id = ? AND statut IN ("planifie", "en_cours")',
+      [id]
+    );
 
-    if (controlesEnCours && controlesEnCours.length > 0) {
+    if (controlesEnCours && controlesEnCours.count > 0) {
       return res.status(400).json({ 
         error: 'Impossible de supprimer cet agent car il a des contrôles en cours' 
       });
     }
 
     // Supprimer l'agent
-    await runQuery('agents', { id }, 'delete');
+    await runQuery('DELETE FROM agents WHERE id = ?', [id]);
 
-    // Log de l'activité dans Supabase
-    await runQuery('activity_logs', {
-      agent_id: req.user.id,
-      action: 'DELETE',
-      entity_type: 'AGENT',
-      entity_id: id,
-      details: JSON.stringify({ nom: agent.nom, prenom: agent.prenom })
-    });
+    // Log de l'activité
+    await runQuery(
+      'INSERT INTO activity_logs (agent_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)',
+      [req.user.id, 'DELETE', 'AGENT', id, JSON.stringify({ nom: agent.nom, prenom: agent.prenom })]
+    );
 
     res.json({ message: 'Agent supprimé avec succès' });
 
@@ -321,7 +274,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 router.get('/stats/overview', authenticateToken, async (req, res) => {
   try {
     // Récupérer tous les agents pour calculer les statistiques
-    const agents = await allQuery('agents');
+    const agents = await allQuery('SELECT * FROM agents');
     
     const stats = {
       total: agents.length,
@@ -335,15 +288,12 @@ router.get('/stats/overview', authenticateToken, async (req, res) => {
       techniciens_metrologie: agents.filter(a => a.role === 'technicien_metrologie').length
     };
 
-    // Récupérer les contrôles en cours
-    const { data: controles } = await supabase
-      .from('controles')
-      .select('id', { count: 'exact' })
-      .in('statut', ['planifie', 'en_cours']);
+    // Récupérer le nombre de contrôles en cours
+    const controlesEnCours = await getQuery('SELECT COUNT(*) as count FROM controles WHERE statut IN ("planifie", "en_cours")');
 
     res.json({
       ...stats,
-      controles_en_cours: controles?.length || 0
+      controles_en_cours: controlesEnCours ? controlesEnCours.count : 0
     });
 
   } catch (error) {
