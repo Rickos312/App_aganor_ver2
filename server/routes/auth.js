@@ -236,7 +236,7 @@ router.post('/register', async (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
-    const result = await runQuery(sql, [
+    await runQuery(sql, [
       numeroMatricule, nom, prenom, email, telephone, role, zone, 'actif',
       date_embauche, adresse, date_naissance, lieu_naissance, nationalite || 'Gabonaise',
       situation_matrimoniale, nombre_enfants || 0, niveau_etude,
@@ -245,10 +245,14 @@ router.post('/register', async (req, res) => {
       latitude, longitude, passwordHash
     ]);
 
+    // Récupérer l'ID du nouvel agent
+    const newAgent = await getQuery('SELECT id FROM agents WHERE email = ?', [email]);
+    const agentId = newAgent.id;
+
     // Log de l'activité
     await runQuery(
       'INSERT INTO activity_logs (agent_id, action, entity_type, entity_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?)',
-      [result.id, 'REGISTER', 'AGENT', result.id, JSON.stringify({ 
+      [agentId, 'REGISTER', 'AGENT', agentId, JSON.stringify({ 
         nom, prenom, email, role, numero_matricule: numeroMatricule 
       }), req.ip]
     );
@@ -256,7 +260,7 @@ router.post('/register', async (req, res) => {
     // Générer le token JWT pour connexion automatique
     const token = jwt.sign(
       { 
-        id: result.id, 
+        id: agentId, 
         email: email, 
         role: role 
       },
@@ -269,14 +273,14 @@ router.post('/register', async (req, res) => {
     expiresAt.setHours(expiresAt.getHours() + 24);
     
     await runQuery('INSERT INTO sessions (agent_id, token, expires_at) VALUES (?, ?, ?)', 
-      [result.id, token, expiresAt.toISOString()]);
+      [agentId, token, expiresAt.toISOString()]);
 
     // Retourner les informations du nouvel agent
     res.status(201).json({
       message: 'Compte créé avec succès',
       token,
       agent: {
-        id: result.id,
+        id: agentId,
         numero_matricule: numeroMatricule,
         nom,
         prenom,
