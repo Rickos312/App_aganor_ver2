@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Settings } from 'lucide-react';
+import { Bell, Settings, LogOut } from 'lucide-react';
 
 interface User {
   nom: string;
@@ -9,9 +9,10 @@ interface User {
 
 interface HeaderProps {
   user: User;
+  onLogout?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ user }) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   return (
     <header className="app-header">
       <div className="header-left">
@@ -33,6 +34,11 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
             <Bell size={20} />
             <span className="notification-badge">3</span>
           </div>
+          {onLogout && (
+            <button className="header-btn logout-btn" onClick={onLogout} title="Se déconnecter">
+              <LogOut size={20} />
+            </button>
+          )}
         </div>
         
         <div className="user-profile">

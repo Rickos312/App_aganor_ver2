@@ -160,6 +160,15 @@ body {
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
 }
 
+.header-btn.logout-btn {
+  color: #ef4444;
+}
+
+.header-btn.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
 .notifications {
   position: relative;
   cursor: pointer;
