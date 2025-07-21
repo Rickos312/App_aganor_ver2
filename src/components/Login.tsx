@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
-import { signInUser } from '../lib/firebase';
 
 interface LoginProps {
   onLogin: (user: any) => void;
@@ -36,39 +35,43 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      const userCredential = await signInUser(formData.email, formData.password);
-      const user = userCredential.user;
-      
-      // Récupérer les informations supplémentaires de l'agent depuis Firestore
-      // Pour l'instant, on utilise les informations de base de Firebase Auth
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur de connexion');
+      }
+
+      // Stocker le token JWT dans le localStorage
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      }
+
+      // Passer les données utilisateur au callback onLogin
       const userData = {
-        id: user.uid,
-        email: user.email,
-        nom: user.displayName || 'Utilisateur',
-        role: 'Inspecteur' // À récupérer depuis Firestore plus tard
+        id: data.user.id,
+        email: data.user.email,
+        nom: data.user.nom || 'Utilisateur',
+        prenom: data.user.prenom || '',
+        role: data.user.role || 'Inspecteur'
       };
       
       onLogin(userData);
     } catch (error: any) {
       console.error('Erreur de connexion:', error);
       
-      // Messages d'erreur personnalisés
-      switch (error.code) {
-        case 'auth/user-not-found':
-          setError('Aucun compte trouvé avec cette adresse email');
-          break;
-        case 'auth/wrong-password':
-          setError('Mot de passe incorrect');
-          break;
-        case 'auth/invalid-email':
-          setError('Adresse email invalide');
-          break;
-        case 'auth/too-many-requests':
-          setError('Trop de tentatives de connexion. Veuillez réessayer plus tard');
-          break;
-        default:
-          setError('Erreur de connexion. Veuillez vérifier vos identifiants');
-      }
+      // Afficher le message d'erreur du backend ou un message par défaut
+      setError(error.message || 'Erreur de connexion. Veuillez vérifier vos identifiants');
     } finally {
       setLoading(false);
     }
