@@ -6,7 +6,7 @@ interface StatCardProps {
   value: string;
   icon: LucideIcon;
   trend: string;
-  color: 'blue' | 'green' | 'orange' | 'purple';
+  color: 'blue' | 'green' | 'orange' | 'purple' | 'indigo' | 'emerald';
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, color }) => {
