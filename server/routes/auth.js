@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { supabase, getQuery, runQuery } from '../lib/supabase.js';
+import { getQuery, runQuery } from '../lib/firebase.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'aganor_secret_key_2025';

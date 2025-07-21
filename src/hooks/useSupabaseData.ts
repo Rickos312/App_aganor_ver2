@@ -8,7 +8,7 @@ import {
   Entreprise,
   Controle,
   Facture
-} from '../lib/supabase';
+} from '../lib/firebase';
 
 // Hook pour les agents
 export function useAgents() {

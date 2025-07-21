@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { supabase, getQuery, allQuery, runQuery } from '../lib/supabase.js';
+import { getQuery, allQuery, runQuery, complexQuery } from '../lib/firebase.js';
 import { authenticateToken } from './auth.js';
 
 const router = express.Router();
