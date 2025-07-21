@@ -476,7 +476,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {isRegisterMode 
                 ? 'Déjà un compte ? Se connecter' 
                 : 'Pas de compte ? Créer un compte'
-              </div>
+              }
             </button>
           </form>
 
