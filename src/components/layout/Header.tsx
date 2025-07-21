@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           )}
         </div>
         
-        <div className="user-profile">
+        <div className={`user-profile ${user ? 'user-profile-connected' : ''}`}>
           <div className="user-info">
             <span className="user-name">{user.nom}</span>
             <span className="user-role">{user.role}</span>
