@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getQuery, runQuery } from '../lib/firebase.js';
+import { getQuery, runQuery, allQuery } from '../database/init.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'aganor_secret_key_2025';
@@ -17,7 +17,7 @@ export const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const agent = await getQuery('agents', { id: decoded.id, statut: 'actif' });
+    const agent = await getQuery('SELECT * FROM agents WHERE id = ? AND statut = ?', [decoded.id, 'actif']);
     
     if (!agent) {
       return res.status(403).json({ error: 'Agent non trouvé ou inactif' });
@@ -40,7 +40,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Rechercher l'agent
-    const agent = await getQuery('agents', { email });
+    const agent = await getQuery('SELECT * FROM agents WHERE email = ?', [email]);
     
     if (!agent) {
       return res.status(401).json({ error: 'Identifiants invalides' });
@@ -72,20 +72,12 @@ router.post('/login', async (req, res) => {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
     
-    await runQuery('sessions', {
-      agent_id: agent.id,
-      token: token,
-      expires_at: expiresAt.toISOString()
-    });
+    await runQuery('INSERT INTO sessions (agent_id, token, expires_at) VALUES (?, ?, ?)', 
+      [agent.id, token, expiresAt.toISOString()]);
 
     // Log de l'activité dans Supabase
-    await runQuery('activity_logs', {
-      agent_id: agent.id,
-      action: 'LOGIN',
-      entity_type: 'AUTH',
-      details: JSON.stringify({ success: true }),
-      ip_address: req.ip
-    });
+    await runQuery('INSERT INTO activity_logs (agent_id, action, entity_type, details, ip_address) VALUES (?, ?, ?, ?, ?)', 
+      [agent.id, 'LOGIN', 'AUTH', JSON.stringify({ success: true }), req.ip]);
 
     // Retourner les informations de l'agent (sans le mot de passe)
     const { password_hash, ...agentData } = agent;
@@ -109,16 +101,11 @@ router.post('/logout', authenticateToken, async (req, res) => {
     const token = authHeader && authHeader.split(' ')[1];
 
     // Supprimer la session de Supabase
-    await supabase.from('sessions').delete().eq('token', token);
+    await runQuery('DELETE FROM sessions WHERE token = ?', [token]);
 
     // Log de l'activité dans Supabase
-    await runQuery('activity_logs', {
-      agent_id: req.user.id,
-      action: 'LOGOUT',
-      entity_type: 'AUTH',
-      details: JSON.stringify({ success: true }),
-      ip_address: req.ip
-    });
+    await runQuery('INSERT INTO activity_logs (agent_id, action, entity_type, details, ip_address) VALUES (?, ?, ?, ?, ?)', 
+      [req.user.id, 'LOGOUT', 'AUTH', JSON.stringify({ success: true }), req.ip]);
 
     res.json({ message: 'Déconnexion réussie' });
 
@@ -161,19 +148,12 @@ router.post('/change-password', authenticateToken, async (req, res) => {
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
     // Mettre à jour le mot de passe dans Supabase
-    await runQuery('agents', {
-      id: req.user.id,
-      password_hash: newPasswordHash
-    }, 'update');
+    await runQuery('UPDATE agents SET password_hash = ? WHERE id = ?', 
+      [newPasswordHash, req.user.id]);
 
     // Log de l'activité dans Supabase
-    await runQuery('activity_logs', {
-      agent_id: req.user.id,
-      action: 'PASSWORD_CHANGE',
-      entity_type: 'AUTH',
-      details: JSON.stringify({ success: true }),
-      ip_address: req.ip
-    });
+    await runQuery('INSERT INTO activity_logs (agent_id, action, entity_type, details, ip_address) VALUES (?, ?, ?, ?, ?)', 
+      [req.user.id, 'PASSWORD_CHANGE', 'AUTH', JSON.stringify({ success: true }), req.ip]);
 
     res.json({ message: 'Mot de passe modifié avec succès' });
 
