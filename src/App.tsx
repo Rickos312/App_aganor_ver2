@@ -9,6 +9,7 @@ import Devis from './components/Devis';
 import Agents from './components/Agents';
 import Parametres from './components/Parametres';
 import Footer from './components/layout/Footer';
+import { setAuthToken } from './services/api';
 import './styles/globals.css';
 import './styles/login.css';
 
@@ -21,6 +22,11 @@ function App() {
   const [unreadMessages] = useState(3); // Simulation de messages non lus
 
   const handleLogin = (userData: any) => {
+    // Sauvegarder le token JWT si disponible
+    if (userData.token) {
+      setAuthToken(userData.token);
+    }
+    
     setUser({
       nom: userData.nom || 'Utilisateur',
       role: userData.role || 'Inspecteur',
@@ -30,6 +36,8 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Supprimer le token JWT
+    localStorage.removeItem('authToken');
     setUser(null);
     setIsAuthenticated(false);
     setActiveModule('dashboard');
@@ -47,7 +55,7 @@ function App() {
       case 'entreprises':
         return <Entreprises />;
       case 'controles':
-        return <Controles />;
+        return <Controles userRole={user?.role} />;
       case 'devis':
         return <Devis />;
       case 'agents':
