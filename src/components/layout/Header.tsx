@@ -29,6 +29,15 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
         </div>
       </div>
       
+      <div className="header-center">
+        <div className="notifications-envelope">
+          <Mail size={24} />
+          {unreadMessages > 0 && (
+            <span className="notification-badge">{unreadMessages}</span>
+          )}
+        </div>
+      </div>
+      
       <div className="header-right">
         <div className="header-actions">
           {onLogout && (
@@ -38,12 +47,6 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
           )}
           <button className="header-btn settings-btn" title="Paramètres">
             <Settings size={20} />
-          </button>
-          <button className="header-btn notifications-btn" title="Messages">
-            <Mail size={20} />
-            {unreadMessages > 0 && (
-              <span className="notification-badge">{unreadMessages}</span>
-            )}
           </button>
         </div>
         
