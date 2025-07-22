@@ -9,7 +9,6 @@ import Devis from './components/Devis';
 import Agents from './components/Agents';
 import Parametres from './components/Parametres';
 import Footer from './components/layout/Footer';
-import { removeAuthToken } from './services/api';
 import './styles/globals.css';
 import './styles/login.css';
 
@@ -31,7 +30,6 @@ function App() {
   };
 
   const handleLogout = () => {
-    removeAuthToken();
     setUser(null);
     setIsAuthenticated(false);
     setActiveModule('dashboard');
