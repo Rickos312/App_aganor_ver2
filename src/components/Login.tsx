@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import '../lib/firebase'; // Importer la configuration Firebase
+import { setAuthToken } from '../services/api';
 
 interface LoginProps {
   onLogin: (user: any) => void;
@@ -59,41 +58,34 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      const auth = getAuth();
+      // Appel à l'API de connexion
+      const response = await fetch('http://localhost:3003/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erreur de connexion');
+      }
+
+      const data = await response.json();
       
-      // Utiliser signInWithEmailAndPassword du SDK Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      
-      console.log('Connexion réussie ! Utilisateur :', userCredential.user);
+      // Stocker le token d'authentification
+      setAuthToken(data.token);
       
       // Passer les données utilisateur au callback onLogin
-      const userData = {
-        id: userCredential.user.uid,
-        email: userCredential.user.email,
-        nom: userCredential.user.displayName || 'Utilisateur',
-        prenom: '',
-        role: 'Inspecteur'
-      };
-      
-      onLogin(userData);
+      onLogin(data.agent);
     } catch (error: any) {
-      console.error('Erreur de connexion Firebase:', error.code, error.message);
+      console.error('Erreur de connexion:', error.message);
       
-      // Gérer les erreurs d'authentification Firebase
-      let errorMessage = "Une erreur inconnue est survenue.";
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = "Aucun utilisateur trouvé avec cet email.";
-      } else if (error.code === 'auth/wrong-password') {
-        errorMessage = "Mot de passe incorrect.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Adresse email invalide.";
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Trop de tentatives de connexion. Veuillez réessayer plus tard.";
-      } else if (error.code === 'auth/invalid-credential') {
-        errorMessage = "Identifiants invalides. Vérifiez votre email et mot de passe.";
-      }
-      
-      setError(errorMessage);
+      setError(error.message || 'Erreur de connexion');
     } finally {
       setLoading(false);
     }
@@ -131,39 +123,39 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      const auth = getAuth();
+      // Appel à l'API d'inscription
+      const response = await fetch('http://localhost:3003/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nom: registerData.nom,
+          prenom: registerData.prenom,
+          email: registerData.email,
+          password: registerData.password,
+          telephone: registerData.telephone,
+          role: registerData.role,
+          zone: registerData.zone,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erreur lors de la création du compte');
+      }
+
+      const data = await response.json();
       
-      // Créer un compte avec Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, registerData.email, registerData.password);
-      
-      console.log('Compte créé avec succès ! Utilisateur :', userCredential.user);
+      // Stocker le token d'authentification
+      setAuthToken(data.token);
       
       // Passer les données utilisateur au callback onLogin
-      const userData = {
-        id: userCredential.user.uid,
-        email: userCredential.user.email,
-        nom: registerData.nom,
-        prenom: registerData.prenom,
-        role: registerData.role
-      };
-      
-      onLogin(userData);
+      onLogin(data.agent);
     } catch (error: any) {
-      console.error('Erreur de création de compte Firebase:', error.code, error.message);
+      console.error('Erreur de création de compte:', error.message);
       
-      // Gérer les erreurs de création de compte Firebase
-      let errorMessage = "Une erreur inconnue est survenue.";
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "Un compte avec cet email existe déjà.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Adresse email invalide.";
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Le mot de passe est trop faible.";
-      } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = "La création de compte est désactivée.";
-      }
-      
-      setError(errorMessage);
+      setError(error.message || 'Erreur lors de la création du compte');
     } finally {
       setLoading(false);
     }

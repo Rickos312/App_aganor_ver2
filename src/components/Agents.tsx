@@ -1,39 +1,9 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Mail, Phone, MapPin, X, Save, User, Navigation, Calendar, Shield } from 'lucide-react';
+import { useAgents, useAgentStats } from '../hooks/useAgentsData';
+import { CreateAgentData } from '../services/agentApi';
 
-interface Agent {
-  id: number;
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone: string;
-  role: 'inspecteur' | 'superviseur' | 'admin' | 'technicien_qualite' | 'technicien_metrologie';
-  zone: string;
-  statut: 'actif' | 'inactif' | 'conge';
-  controlesEnCours: number;
-  dernierControle: string;
-  dateEmbauche?: string;
-  numeroMatricule?: string;
-  adresse?: string;
-  dateNaissance?: string;
-  lieuNaissance?: string;
-  nationalite?: string;
-  situationMatrimoniale?: 'celibataire' | 'marie' | 'divorce' | 'veuf';
-  nombreEnfants?: number;
-  niveauEtude?: string;
-  diplomes?: string[];
-  certifications?: string[];
-  salaire?: number;
-  typeContrat?: 'cdi' | 'cdd' | 'stage' | 'consultant';
-  dateFinContrat?: string;
-  superviseur?: string;
-  geolocalisation?: {
-    latitude: number;
-    longitude: number;
-  };
-}
-
-interface NouvelAgent {
+interface NouvelAgentForm {
   nom: string;
   prenom: string;
   email: string;
@@ -56,7 +26,7 @@ interface NouvelAgent {
   typeContrat: 'cdi' | 'cdd' | 'stage' | 'consultant' | '';
   dateFinContrat: string;
   superviseur: string;
-  geolocalisation: {
+  geolocalisation?: {
     latitude: string;
     longitude: string;
   };
@@ -65,131 +35,13 @@ interface NouvelAgent {
 const Agents: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: 1,
-      nom: 'MBADINGA',
-      prenom: 'Jean-Claude',
-      email: 'jc.mbadinga@aganor.ga',
-      telephone: '+241 06 12 34 56',
-      role: 'inspecteur',
-      zone: 'Libreville Nord',
-      statut: 'actif',
-      controlesEnCours: 3,
-      dernierControle: '2025-01-15'
-    },
-    {
-      id: 2,
-      nom: 'BONGO',
-      prenom: 'Marie-Claire',
-      email: 'mc.bongo@aganor.ga',
-      telephone: '+241 06 23 45 67',
-      role: 'superviseur',
-      zone: 'Port-Gentil',
-      statut: 'actif',
-      controlesEnCours: 1,
-      dernierControle: '2025-01-14'
-    },
-    {
-      id: 3,
-      nom: 'NDONG',
-      prenom: 'Martin',
-      email: 'm.ndong@aganor.ga',
-      telephone: '+241 06 34 56 78',
-      role: 'inspecteur',
-      zone: 'Libreville Sud',
-      statut: 'actif',
-      controlesEnCours: 2,
-      dernierControle: '2025-01-13'
-    },
-    {
-      id: 4,
-      nom: 'OBAME',
-      prenom: 'Pascal',
-      email: 'p.obame@aganor.ga',
-      telephone: '+241 06 45 67 89',
-      role: 'admin',
-      zone: 'Toutes zones',
-      statut: 'actif',
-      controlesEnCours: 0,
-      dernierControle: '2025-01-10'
-    },
-    {
-      id: 5,
-      nom: 'MIGUELI',
-      prenom: 'Paul',
-      email: 'p.migueli@aganor.ga',
-      telephone: '+241 77 52 42 21',
-      role: 'technicien_qualite',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 4,
-      dernierControle: '2025-01-15'
-    },
-    {
-      id: 6,
-      nom: 'MBA EKOMY',
-      prenom: 'Jean',
-      email: 'j.mba-ekomy@aganor.ga',
-      telephone: '+241 77 92 44 21',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 3,
-      dernierControle: '2025-01-14'
-    },
-    {
-      id: 7,
-      nom: 'KOUMBA',
-      prenom: 'Jérome',
-      email: 'j.koumba@aganor.ga',
-      telephone: '+241 77 92 44 21',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'conge',
-      controlesEnCours: 0,
-      dernierControle: '2025-01-08'
-    },
-    {
-      id: 8,
-      nom: 'DIESSIEMOU',
-      prenom: 'Gildas',
-      email: 'g.diessiemou@aganor.ga',
-      telephone: '+241 67 67 44 21',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 2,
-      dernierControle: '2025-01-13'
-    },
-    {
-      id: 9,
-      nom: 'OYINI',
-      prenom: 'Viviane',
-      email: 'v.oyini@aganor.ga',
-      telephone: '+241 77 92 47 65',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 3,
-      dernierControle: '2025-01-12'
-    },
-    {
-      id: 10,
-      nom: 'PENDY',
-      prenom: 'Vanessa',
-      email: 'v.pendy@aganor.ga',
-      telephone: '+241 20 96 24 421',
-      role: 'technicien_metrologie',
-      zone: 'Libreville',
-      statut: 'actif',
-      controlesEnCours: 2,
-      dernierControle: '2025-01-11'
-    }
-  ]);
+  // Utiliser les hooks pour récupérer les données
+  const { agents, loading, error, createAgent, refetch } = useAgents({ role: selectedRole });
+  const { stats: agentStats, loading: statsLoading } = useAgentStats();
 
-  const [nouvelAgent, setNouvelAgent] = useState<NouvelAgent>({
+  const [nouvelAgent, setNouvelAgent] = useState<NouvelAgentForm>({
     nom: '',
     prenom: '',
     email: '',
@@ -224,7 +76,7 @@ const Agents: React.FC = () => {
   const niveauxEtude = ['Baccalauréat', 'BTS/DUT', 'Licence', 'Master', 'Doctorat', 'École d\'ingénieur', 'Formation professionnelle'];
   const typesContrat = ['cdi', 'cdd', 'stage', 'consultant'];
 
-  const filteredAgents = agents.filter(agent => {
+  const filteredAgents = agents?.filter(agent => {
     return selectedRole === '' || agent.role === selectedRole;
   });
 
@@ -288,7 +140,7 @@ const Agents: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: keyof NouvelAgent, value: string) => {
+  const handleInputChange = (field: keyof NouvelAgentForm, value: string) => {
     setNouvelAgent(prev => ({
       ...prev,
       [field]: value
@@ -354,7 +206,7 @@ const Agents: React.FC = () => {
     setNouvelAgent(prev => ({ ...prev, numeroMatricule: matricule }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation basique
@@ -364,83 +216,87 @@ const Agents: React.FC = () => {
     }
 
     // Vérifier si l'email existe déjà
-    if (agents.some(agent => agent.email === nouvelAgent.email)) {
+    if (agents?.some(agent => agent.email === nouvelAgent.email)) {
       alert('Un agent avec cet email existe déjà');
       return;
     }
 
     // Vérifier si le matricule existe déjà
-    if (nouvelAgent.numeroMatricule && agents.some(agent => agent.numeroMatricule === nouvelAgent.numeroMatricule)) {
+    if (nouvelAgent.numeroMatricule && agents?.some(agent => agent.numero_matricule === nouvelAgent.numeroMatricule)) {
       alert('Un agent avec ce matricule existe déjà');
       return;
     }
 
-    // Ajouter le nouvel agent
-    const newId = Math.max(...agents.map(a => a.id)) + 1;
-    const newAgent: Agent = {
-      id: newId,
-      nom: nouvelAgent.nom,
-      prenom: nouvelAgent.prenom,
-      email: nouvelAgent.email,
-      telephone: nouvelAgent.telephone,
-      role: nouvelAgent.role as any,
-      zone: nouvelAgent.zone,
-      statut: nouvelAgent.statut,
-      controlesEnCours: 0,
-      dernierControle: new Date().toISOString().split('T')[0],
-      dateEmbauche: nouvelAgent.dateEmbauche,
-      numeroMatricule: nouvelAgent.numeroMatricule,
-      adresse: nouvelAgent.adresse,
-      dateNaissance: nouvelAgent.dateNaissance,
-      lieuNaissance: nouvelAgent.lieuNaissance,
-      nationalite: nouvelAgent.nationalite,
-      situationMatrimoniale: nouvelAgent.situationMatrimoniale as any,
-      nombreEnfants: parseInt(nouvelAgent.nombreEnfants) || 0,
-      niveauEtude: nouvelAgent.niveauEtude,
-      diplomes: nouvelAgent.diplomes.filter(d => d.trim() !== ''),
-      certifications: nouvelAgent.certifications.filter(c => c.trim() !== ''),
-      salaire: parseFloat(nouvelAgent.salaire) || undefined,
-      typeContrat: nouvelAgent.typeContrat as any,
-      dateFinContrat: nouvelAgent.dateFinContrat || undefined,
-      superviseur: nouvelAgent.superviseur || undefined,
-      geolocalisation: nouvelAgent.geolocalisation.latitude && nouvelAgent.geolocalisation.longitude ? {
-        latitude: parseFloat(nouvelAgent.geolocalisation.latitude),
-        longitude: parseFloat(nouvelAgent.geolocalisation.longitude)
-      } : undefined
-    };
-
-    setAgents(prev => [...prev, newAgent]);
+    setSubmitting(true);
     
-    // Réinitialiser le formulaire
-    setNouvelAgent({
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      role: '',
-      zone: '',
-      statut: 'actif',
-      dateEmbauche: '',
-      numeroMatricule: '',
-      adresse: '',
-      dateNaissance: '',
-      lieuNaissance: '',
-      nationalite: 'Gabonaise',
-      situationMatrimoniale: '',
-      nombreEnfants: '0',
-      niveauEtude: '',
-      diplomes: [''],
-      certifications: [''],
-      salaire: '',
-      typeContrat: '',
-      dateFinContrat: '',
-      superviseur: '',
-      geolocalisation: {
-        latitude: '',
-        longitude: ''
-      }
-    });
-    setShowModal(false);
+    try {
+      // Préparer les données pour l'API
+      const agentData: CreateAgentData = {
+        nom: nouvelAgent.nom,
+        prenom: nouvelAgent.prenom,
+        email: nouvelAgent.email,
+        telephone: nouvelAgent.telephone,
+        role: nouvelAgent.role as any,
+        zone: nouvelAgent.zone,
+        statut: nouvelAgent.statut,
+        date_embauche: nouvelAgent.dateEmbauche,
+        numero_matricule: nouvelAgent.numeroMatricule,
+        adresse: nouvelAgent.adresse,
+        date_naissance: nouvelAgent.dateNaissance,
+        lieu_naissance: nouvelAgent.lieuNaissance,
+        nationalite: nouvelAgent.nationalite,
+        situation_matrimoniale: nouvelAgent.situationMatrimoniale as any,
+        nombre_enfants: parseInt(nouvelAgent.nombreEnfants) || 0,
+        niveau_etude: nouvelAgent.niveauEtude,
+        diplomes: nouvelAgent.diplomes.filter(d => d.trim() !== ''),
+        certifications: nouvelAgent.certifications.filter(c => c.trim() !== ''),
+        salaire: parseFloat(nouvelAgent.salaire) || undefined,
+        type_contrat: nouvelAgent.typeContrat as any,
+        date_fin_contrat: nouvelAgent.dateFinContrat || undefined,
+        superviseur: nouvelAgent.superviseur || undefined,
+        latitude: nouvelAgent.geolocalisation?.latitude ? parseFloat(nouvelAgent.geolocalisation.latitude) : undefined,
+        longitude: nouvelAgent.geolocalisation?.longitude ? parseFloat(nouvelAgent.geolocalisation.longitude) : undefined,
+      };
+
+      // Créer l'agent via l'API
+      await createAgent(agentData);
+      
+      // Réinitialiser le formulaire
+      setNouvelAgent({
+        nom: '',
+        prenom: '',
+        email: '',
+        telephone: '',
+        role: '',
+        zone: '',
+        statut: 'actif',
+        dateEmbauche: '',
+        numeroMatricule: '',
+        adresse: '',
+        dateNaissance: '',
+        lieuNaissance: '',
+        nationalite: 'Gabonaise',
+        situationMatrimoniale: '',
+        nombreEnfants: '0',
+        niveauEtude: '',
+        diplomes: [''],
+        certifications: [''],
+        salaire: '',
+        typeContrat: '',
+        dateFinContrat: '',
+        superviseur: '',
+        geolocalisation: {
+          latitude: '',
+          longitude: ''
+        }
+      });
+      setShowModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'agent:', error);
+      // L'erreur est déjà gérée par le hook useAgents
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -476,13 +332,56 @@ const Agents: React.FC = () => {
   };
 
   // Statistiques des agents
-  const statsAgents = {
-    total: agents.length,
-    actifs: agents.filter(a => a.statut === 'actif').length,
-    enConge: agents.filter(a => a.statut === 'conge').length,
-    inactifs: agents.filter(a => a.statut === 'inactif').length,
-    controlesTotal: agents.reduce((sum, agent) => sum + agent.controlesEnCours, 0)
+  const statsAgents = agentStats || {
+    total: 0,
+    actifs: 0,
+    en_conge: 0,
+    inactifs: 0,
+    controles_en_cours: 0
   };
+
+  // Affichage du loading
+  if (loading && !agents) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <div className="page-title">
+            <Users size={32} />
+            <div>
+              <h1>Gestion des Agents</h1>
+              <p>Chargement...</p>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <div>Chargement des agents...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage des erreurs
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <div className="page-title">
+            <Users size={32} />
+            <div>
+              <h1>Gestion des Agents</h1>
+              <p>Erreur de chargement</p>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '200px', gap: '1rem' }}>
+          <div style={{ color: '#ef4444' }}>Erreur: {error}</div>
+          <button className="btn-primary" onClick={refetch}>
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
@@ -511,11 +410,11 @@ const Agents: React.FC = () => {
           <span className="stat-label">Agents actifs</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{statsAgents.enConge}</span>
+          <span className="stat-number">{statsAgents.en_conge}</span>
           <span className="stat-label">En congé</span>
         </div>
         <div className="stat-item">
-          <span className="stat-number">{statsAgents.controlesTotal}</span>
+          <span className="stat-number">{statsAgents.controles_en_cours}</span>
           <span className="stat-label">Contrôles en cours</span>
         </div>
       </div>
@@ -534,7 +433,7 @@ const Agents: React.FC = () => {
       </div>
 
       <div className="agents-grid">
-        {filteredAgents.map(agent => (
+        {filteredAgents?.map(agent => (
           <div key={agent.id} className="agent-card">
             <div className="agent-avatar">
               {agent.prenom.charAt(0)}{agent.nom.charAt(0)}
@@ -567,12 +466,12 @@ const Agents: React.FC = () => {
               
               <div className="agent-stats">
                 <div className="stat-item">
-                  <span className="stat-value">{agent.controlesEnCours}</span>
+                  <span className="stat-value">{agent.controlesEnCours || 0}</span>
                   <span className="stat-label">Contrôles en cours</span>
                 </div>
                 <div className="stat-item">
                   <span className="stat-value">
-                    {new Date(agent.dernierControle).toLocaleDateString('fr-FR')}
+                    {agent.dernierControle ? new Date(agent.dernierControle).toLocaleDateString('fr-FR') : 'Aucun'}
                   </span>
                   <span className="stat-label">Dernier contrôle</span>
                 </div>
@@ -622,6 +521,7 @@ const Agents: React.FC = () => {
                       onChange={(e) => handleInputChange('nom', e.target.value)}
                       placeholder="Ex: MBADINGA"
                       required
+                      disabled={submitting}
                     />
                   </div>
 
@@ -634,6 +534,7 @@ const Agents: React.FC = () => {
                       onChange={(e) => handleInputChange('prenom', e.target.value)}
                       placeholder="Ex: Jean-Claude"
                       required
+                      disabled={submitting}
                     />
                   </div>
 
@@ -644,6 +545,7 @@ const Agents: React.FC = () => {
                       id="dateNaissance"
                       value={nouvelAgent.dateNaissance}
                       onChange={(e) => handleInputChange('dateNaissance', e.target.value)}
+                      disabled={submitting}
                     />
                   </div>
 
@@ -655,6 +557,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.lieuNaissance}
                       onChange={(e) => handleInputChange('lieuNaissance', e.target.value)}
                       placeholder="Ex: Libreville"
+                      disabled={submitting}
                     />
                   </div>
 
@@ -664,6 +567,7 @@ const Agents: React.FC = () => {
                       id="nationalite"
                       value={nouvelAgent.nationalite}
                       onChange={(e) => handleInputChange('nationalite', e.target.value)}
+                      disabled={submitting}
                     >
                       {nationalites.map(nat => (
                         <option key={nat} value={nat}>{nat}</option>
@@ -677,6 +581,7 @@ const Agents: React.FC = () => {
                       id="situationMatrimoniale"
                       value={nouvelAgent.situationMatrimoniale}
                       onChange={(e) => handleInputChange('situationMatrimoniale', e.target.value)}
+                      disabled={submitting}
                     >
                       <option value="">Sélectionner</option>
                       <option value="celibataire">Célibataire</option>
@@ -694,6 +599,7 @@ const Agents: React.FC = () => {
                       min="0"
                       value={nouvelAgent.nombreEnfants}
                       onChange={(e) => handleInputChange('nombreEnfants', e.target.value)}
+                      disabled={submitting}
                     />
                   </div>
 
@@ -705,6 +611,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.adresse}
                       onChange={(e) => handleInputChange('adresse', e.target.value)}
                       placeholder="Adresse complète"
+                      disabled={submitting}
                     />
                   </div>
                 </div>
@@ -726,6 +633,7 @@ const Agents: React.FC = () => {
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="prenom.nom@aganor.ga"
                       required
+                      disabled={submitting}
                     />
                   </div>
 
@@ -737,6 +645,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.telephone}
                       onChange={(e) => handleInputChange('telephone', e.target.value)}
                       placeholder="+241 XX XX XX XX"
+                      disabled={submitting}
                     />
                   </div>
                 </div>
@@ -758,12 +667,14 @@ const Agents: React.FC = () => {
                         value={nouvelAgent.numeroMatricule}
                         onChange={(e) => handleInputChange('numeroMatricule', e.target.value)}
                         placeholder="Ex: AG2025001"
+                        disabled={submitting}
                       />
                       <button
                         type="button"
                         className="btn-secondary"
                         onClick={generateMatricule}
                         style={{ whiteSpace: 'nowrap' }}
+                        disabled={submitting}
                       >
                         Générer
                       </button>
@@ -777,6 +688,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.role}
                       onChange={(e) => handleInputChange('role', e.target.value)}
                       required
+                      disabled={submitting}
                     >
                       <option value="">Sélectionner un rôle</option>
                       {roles.map(role => (
@@ -791,6 +703,7 @@ const Agents: React.FC = () => {
                       id="zone"
                       value={nouvelAgent.zone}
                       onChange={(e) => handleInputChange('zone', e.target.value)}
+                      disabled={submitting}
                     >
                       <option value="">Sélectionner une zone</option>
                       {zones.map(zone => (
@@ -805,6 +718,7 @@ const Agents: React.FC = () => {
                       id="statut"
                       value={nouvelAgent.statut}
                       onChange={(e) => handleInputChange('statut', e.target.value as any)}
+                      disabled={submitting}
                     >
                       <option value="actif">Actif</option>
                       <option value="inactif">Inactif</option>
@@ -819,6 +733,7 @@ const Agents: React.FC = () => {
                       id="dateEmbauche"
                       value={nouvelAgent.dateEmbauche}
                       onChange={(e) => handleInputChange('dateEmbauche', e.target.value)}
+                      disabled={submitting}
                     />
                   </div>
 
@@ -828,6 +743,7 @@ const Agents: React.FC = () => {
                       id="typeContrat"
                       value={nouvelAgent.typeContrat}
                       onChange={(e) => handleInputChange('typeContrat', e.target.value)}
+                      disabled={submitting}
                     >
                       <option value="">Sélectionner</option>
                       {typesContrat.map(type => (
@@ -844,6 +760,7 @@ const Agents: React.FC = () => {
                         id="dateFinContrat"
                         value={nouvelAgent.dateFinContrat}
                         onChange={(e) => handleInputChange('dateFinContrat', e.target.value)}
+                        disabled={submitting}
                       />
                     </div>
                   )}
@@ -856,6 +773,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.salaire}
                       onChange={(e) => handleInputChange('salaire', e.target.value)}
                       placeholder="Ex: 500000"
+                      disabled={submitting}
                     />
                   </div>
 
@@ -867,6 +785,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.superviseur}
                       onChange={(e) => handleInputChange('superviseur', e.target.value)}
                       placeholder="Nom du superviseur direct"
+                      disabled={submitting}
                     />
                   </div>
                 </div>
@@ -885,6 +804,7 @@ const Agents: React.FC = () => {
                       id="niveauEtude"
                       value={nouvelAgent.niveauEtude}
                       onChange={(e) => handleInputChange('niveauEtude', e.target.value)}
+                      disabled={submitting}
                     >
                       <option value="">Sélectionner</option>
                       {niveauxEtude.map(niveau => (
@@ -903,12 +823,14 @@ const Agents: React.FC = () => {
                           onChange={(e) => handleArrayChange('diplomes', index, e.target.value)}
                           placeholder="Ex: Master en Métrologie"
                           style={{ flex: 1 }}
+                          disabled={submitting}
                         />
                         {nouvelAgent.diplomes.length > 1 && (
                           <button
                             type="button"
                             className="btn-icon"
                             onClick={() => removeArrayItem('diplomes', index)}
+                            disabled={submitting}
                           >
                             <X size={16} />
                           </button>
@@ -920,6 +842,7 @@ const Agents: React.FC = () => {
                       className="btn-secondary"
                       onClick={() => addArrayItem('diplomes')}
                       style={{ marginTop: '0.5rem' }}
+                      disabled={submitting}
                     >
                       Ajouter un diplôme
                     </button>
@@ -935,12 +858,14 @@ const Agents: React.FC = () => {
                           onChange={(e) => handleArrayChange('certifications', index, e.target.value)}
                           placeholder="Ex: Certification ISO 9001"
                           style={{ flex: 1 }}
+                          disabled={submitting}
                         />
                         {nouvelAgent.certifications.length > 1 && (
                           <button
                             type="button"
                             className="btn-icon"
                             onClick={() => removeArrayItem('certifications', index)}
+                            disabled={submitting}
                           >
                             <X size={16} />
                           </button>
@@ -952,6 +877,7 @@ const Agents: React.FC = () => {
                       className="btn-secondary"
                       onClick={() => addArrayItem('certifications')}
                       style={{ marginTop: '0.5rem' }}
+                      disabled={submitting}
                     >
                       Ajouter une certification
                     </button>
@@ -975,6 +901,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.geolocalisation.latitude}
                       onChange={(e) => handleGeolocationChange('latitude', e.target.value)}
                       placeholder="Ex: 0.3901"
+                      disabled={submitting}
                     />
                   </div>
 
@@ -987,6 +914,7 @@ const Agents: React.FC = () => {
                       value={nouvelAgent.geolocalisation.longitude}
                       onChange={(e) => handleGeolocationChange('longitude', e.target.value)}
                       placeholder="Ex: 9.4544"
+                      disabled={submitting}
                     />
                   </div>
 
@@ -995,6 +923,7 @@ const Agents: React.FC = () => {
                       type="button"
                       className="btn-secondary geolocation-btn"
                       onClick={getCurrentLocation}
+                      disabled={submitting}
                     >
                       <Navigation size={16} />
                       Utiliser ma position actuelle
@@ -1004,12 +933,17 @@ const Agents: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  onClick={handleCloseModal}
+                  disabled={submitting}
+                >
                   Annuler
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn-primary" disabled={submitting}>
                   <Save size={20} />
-                  Enregistrer l'agent
+                  {submitting ? 'Enregistrement...' : 'Enregistrer l\'agent'}
                 </button>
               </div>
             </form>
