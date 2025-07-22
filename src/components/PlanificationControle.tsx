@@ -1,41 +1,124 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, Building2, Settings, Save, X, ChevronLeft, ChevronRight, Plus, Printer } from 'lucide-react';
-import { useAgents } from '../hooks/useApiData';
-import { useEntreprises, useEntrepriseWithInstruments } from '../hooks/useApiData';
-import { createControle, CreateControleData } from '../services/controleApi';
+
+interface Instrument {
+  type: string;
+  marque: string;
+  modele: string;
+  numeroSerie: string;
+  localisation: string;
+}
+
+interface Entreprise {
+  id: number;
+  nom: string;
+  adresse: string;
+  instruments: Instrument[];
+}
+
+interface Technicien {
+  id: number;
+  nom: string;
+  prenom: string;
+  role: string;
+  zone: string;
+  statut: 'actif' | 'inactif' | 'conge';
+}
 
 interface ControleEvent {
   id: string;
   date: string;
   heure: string;
-  entreprise: any;
-  technicien: any;
-  instruments: any[];
+  entreprise: Entreprise;
+  technicien: Technicien;
+  instruments: Instrument[];
   statut: 'planifie' | 'confirme' | 'reporte';
   notes?: string;
 }
 
 interface PlanificationControleProps {
   onClose: () => void;
-  onControlPlanned?: () => void;
 }
 
-const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, onControlPlanned }) => {
+const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ControleEvent | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Hooks pour récupérer les données depuis l'API
-  const { entreprises, loading: loadingEntreprises, error: errorEntreprises } = useEntreprises();
-  const { agents, loading: loadingAgents, error: errorAgents } = useAgents();
-  
-  // Hook pour récupérer les instruments d'une entreprise spécifique
-  const { entreprise: entrepriseWithInstruments, loading: loadingInstruments } = useEntrepriseWithInstruments(
-    nouveauControle.entrepriseId ? parseInt(nouveauControle.entrepriseId) : null
-  );
+  // Données des entreprises avec instruments
+  const entreprises: Entreprise[] = [
+    {
+      id: 1,
+      nom: 'SOGATRA',
+      adresse: 'Boulevard de la République, Libreville',
+      instruments: [
+        { type: 'Balance commerciale', marque: 'Mettler Toledo', modele: 'XS204', numeroSerie: 'MT2025001', localisation: 'Caisse principale' }
+      ]
+    },
+    {
+      id: 2,
+      nom: 'Total Gabon',
+      adresse: 'Avenue du Colonel Parant, Port-Gentil',
+      instruments: [
+        { type: 'Compteur carburant', marque: 'Gilbarco', modele: 'Encore 700S', numeroSerie: 'GB2025001', localisation: 'Station 1' }
+      ]
+    },
+    {
+      id: 3,
+      nom: 'Casino Supermarché',
+      adresse: 'Centre-ville, Libreville',
+      instruments: [
+        { type: 'Balance commerciale', marque: 'Mettler Toledo', modele: 'XS204', numeroSerie: 'MT2025002', localisation: 'Caisse 1' },
+        { type: 'Balance commerciale', marque: 'Sartorius', modele: 'Entris', numeroSerie: 'SR2025001', localisation: 'Caisse 2' }
+      ]
+    },
+    {
+      id: 4,
+      nom: 'Carrefour Immaculé',
+      adresse: 'Quartier Immaculé Conception, Libreville',
+      instruments: [
+        { type: 'Balance commerciale', marque: 'Mettler Toledo', modele: 'XS204', numeroSerie: 'MT2025003', localisation: 'Caisse principale' }
+      ]
+    },
+    {
+      id: 5,
+      nom: 'Station Total Gabon',
+      adresse: 'Boulevard Triomphal, Libreville',
+      instruments: [
+        { type: 'Pompe à essence', marque: 'Gilbarco', modele: 'Encore 700S', numeroSerie: 'GB2025002', localisation: 'Îlot 1' }
+      ]
+    },
+    {
+      id: 6,
+      nom: 'Petro-Gabon',
+      adresse: 'Route de l\'Aéroport, Libreville',
+      instruments: [
+        { type: 'Pompe à essence', marque: 'Wayne', modele: 'Helix 6000', numeroSerie: 'WY2025001', localisation: 'Îlot principal' }
+      ]
+    },
+    {
+      id: 7,
+      nom: 'ETS-Jean Pneu',
+      adresse: 'Quartier Akanda, Libreville',
+      instruments: [
+        { type: 'Manomètre à pression', marque: 'Bourdon Haenni', modele: 'BH-250', numeroSerie: 'BH2025001', localisation: 'Atelier principal' }
+      ]
+    }
+  ];
+
+  // Données des techniciens
+  const techniciens: Technicien[] = [
+    { id: 1, nom: 'MBADINGA', prenom: 'Jean-Claude', role: 'Inspecteur', zone: 'Libreville Nord', statut: 'actif' },
+    { id: 2, nom: 'BONGO', prenom: 'Marie-Claire', role: 'Superviseur', zone: 'Port-Gentil', statut: 'actif' },
+    { id: 3, nom: 'NDONG', prenom: 'Martin', role: 'Inspecteur', zone: 'Libreville Sud', statut: 'actif' },
+    { id: 4, nom: 'MIGUELI', prenom: 'Paul', role: 'Technicien Qualité', zone: 'Libreville', statut: 'actif' },
+    { id: 5, nom: 'MBA EKOMY', prenom: 'Jean', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' },
+    { id: 6, nom: 'KOUMBA', prenom: 'Jérome', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'conge' },
+    { id: 7, nom: 'DIESSIEMOU', prenom: 'Gildas', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' },
+    { id: 8, nom: 'OYINI', prenom: 'Viviane', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' },
+    { id: 9, nom: 'PENDY', prenom: 'Vanessa', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' }
+  ];
 
   // Événements de contrôle existants
   const [controleEvents, setControleEvents] = useState<ControleEvent[]>([
@@ -74,31 +157,11 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
   const [nouveauControle, setNouveauControle] = useState({
     date: '',
     heure: '',
-    typeControle: 'Contrôle inopiné',
     entrepriseId: '',
     technicienId: '',
     instrumentsSelectionnes: [] as string[],
-    priorite: 'normale' as 'basse' | 'normale' | 'haute' | 'urgente',
     notes: ''
   });
-
-  // Types de contrôles disponibles
-  const typesControles = [
-    'Contrôle périodique',
-    'Contrôle inopiné',
-    'Contrôle de réception',
-    'Contrôle après réparation',
-    'Contrôle de vérification',
-    'Contrôle de surveillance'
-  ];
-
-  // Niveaux de priorité
-  const priorites = [
-    { value: 'basse', label: 'Basse' },
-    { value: 'normale', label: 'Normale' },
-    { value: 'haute', label: 'Haute' },
-    { value: 'urgente', label: 'Urgente' }
-  ];
 
   // Fonctions utilitaires pour le calendrier
   const getDaysInMonth = (date: Date) => {
@@ -137,82 +200,38 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
     setShowEventModal(true);
   };
 
-  const handleSubmitControle = async (e: React.FormEvent) => {
+  const handleSubmitControle = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!nouveauControle.entrepriseId || !nouveauControle.technicienId || !nouveauControle.date || !nouveauControle.heure || !nouveauControle.typeControle) {
+    if (!nouveauControle.entrepriseId || !nouveauControle.technicienId || !nouveauControle.date || !nouveauControle.heure) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    if (nouveauControle.instrumentsSelectionnes.length === 0) {
-      alert('Veuillez sélectionner au moins un instrument');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubmitError(null);
-
-    try {
-      // Préparer les données pour l'API
-      const controleData: CreateControleData = {
-        entreprise_id: parseInt(nouveauControle.entrepriseId),
-        agent_id: parseInt(nouveauControle.technicienId),
-        type_controle: nouveauControle.typeControle,
-        date_planifiee: nouveauControle.date,
-        heure_debut: nouveauControle.heure,
-        priorite: nouveauControle.priorite,
-        observations: nouveauControle.notes || undefined,
-        instruments_ids: nouveauControle.instrumentsSelectionnes.map(id => parseInt(id))
-      };
-
-      // Créer le contrôle via l'API
-      await createControle(controleData);
-
-      // Réinitialiser le formulaire
-      setNouveauControle({
-        date: '',
-        heure: '',
-        typeControle: 'Contrôle inopiné',
-        entrepriseId: '',
-        technicienId: '',
-        instrumentsSelectionnes: [],
-        priorite: 'normale',
-        notes: ''
-      });
-
-      // Fermer le modal et notifier le parent
-      setShowEventModal(false);
-      if (onControlPlanned) {
-        onControlPlanned();
-      }
-
-    } catch (error) {
-      console.error('Erreur lors de la planification du contrôle:', error);
-      setSubmitError(error instanceof Error ? error.message : 'Erreur lors de la planification du contrôle');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Fonction pour gérer l'ancien système d'événements locaux (à supprimer à terme)
-  const handleSubmitControleLocal = (e: React.FormEvent) => {
-    e.preventDefault();
-    
     const entreprise = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
-    const technicien = agents.find(t => t.id === parseInt(nouveauControle.technicienId));
+    const technicien = techniciens.find(t => t.id === parseInt(nouveauControle.technicienId));
 
     if (!entreprise || !technicien) {
       alert('Entreprise ou technicien non trouvé');
       return;
     }
+
+    const instrumentsSelectionnes = entreprise.instruments.filter((_, index) => 
+      nouveauControle.instrumentsSelectionnes.includes(index.toString())
+    );
+
+    if (instrumentsSelectionnes.length === 0) {
+      alert('Veuillez sélectionner au moins un instrument');
+      return;
+    }
+
     const newEvent: ControleEvent = {
       id: Date.now().toString(),
       date: nouveauControle.date,
       heure: nouveauControle.heure,
       entreprise,
       technicien,
-      instruments: [],
+      instruments: instrumentsSelectionnes,
       statut: 'planifie',
       notes: nouveauControle.notes
     };
@@ -223,11 +242,9 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
     setNouveauControle({
       date: '',
       heure: '',
-      typeControle: 'Contrôle inopiné',
       entrepriseId: '',
       technicienId: '',
       instrumentsSelectionnes: [],
-      priorite: 'normale',
       notes: ''
     });
     setShowEventModal(false);
@@ -280,7 +297,7 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  const entrepriseSelectionnee = entrepriseWithInstruments;
+  const entrepriseSelectionnee = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
 
   // Fonction pour imprimer la fiche de contrôle
   const handlePrintControlForm = () => {
@@ -290,13 +307,13 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
     }
 
     const entreprise = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
-    const technicien = agents.find(t => t.id === parseInt(nouveauControle.technicienId));
+    const technicien = techniciens.find(t => t.id === parseInt(nouveauControle.technicienId));
     
     if (!entreprise || !technicien) return;
 
-    const instrumentsSelectionnes = entrepriseSelectionnee?.instruments?.filter((_, index) => 
+    const instrumentsSelectionnes = entreprise.instruments.filter((_, index) => 
       nouveauControle.instrumentsSelectionnes.includes(index.toString())
-    ) || [];
+    );
 
     // Créer le contenu HTML pour l'impression
     const printContent = `
@@ -455,7 +472,7 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
             </div>
             <div class="info-item">
               <div class="info-label">Type de contrôle</div>
-              <div class="info-value">${nouveauControle.typeControle}</div>
+              <div class="info-value">${nouveauControle.controleType || 'Contrôle périodique'}</div>
             </div>
           </div>
         </div>
@@ -469,7 +486,7 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
             </div>
             <div class="info-item">
               <div class="info-label">Adresse</div>
-              <div class="info-value">${entreprise.adresse || ''}</div>
+              <div class="info-value">${entreprise.adresse}</div>
             </div>
           </div>
         </div>
@@ -514,10 +531,10 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
               ${instrumentsSelectionnes.length > 0 ? instrumentsSelectionnes.map(instrument => `
                 <tr>
                   <td>${instrument.type}</td>
-                  <td>${instrument.marque || ''}</td>
-                  <td>${instrument.modele || ''}</td>
-                  <td>${instrument.numero_serie || ''}</td>
-                  <td>${instrument.localisation || ''}</td>
+                  <td>${instrument.marque}</td>
+                  <td>${instrument.modele}</td>
+                  <td>${instrument.numeroSerie}</td>
+                  <td>${instrument.localisation}</td>
                   <td style="width: 80px;"></td>
                   <td style="width: 120px;"></td>
                 </tr>
@@ -572,20 +589,6 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
       alert('Impossible d\'ouvrir la fenêtre d\'impression. Veuillez vérifier les paramètres de votre navigateur.');
     }
   };
-
-  // Affichage des états de chargement et d'erreur
-  if (loadingEntreprises || loadingAgents) {
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p>Chargement des données...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="modal-overlay">
@@ -715,15 +718,6 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
 
               <form onSubmit={handleSubmitControle} className="event-form">
                 <div className="form-grid">
-                  {submitError && (
-                    <div className="form-group full-width">
-                      <div className="error-message">
-                        <AlertCircle size={16} />
-                        <span>{submitError}</span>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="form-group">
                     <label htmlFor="date">Date *</label>
                     <input
@@ -731,7 +725,6 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                       id="date"
                       value={nouveauControle.date}
                       onChange={(e) => setNouveauControle(prev => ({ ...prev, date: e.target.value }))}
-                      disabled={isSubmitting}
                       required
                     />
                   </div>
@@ -743,38 +736,8 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                       id="heure"
                       value={nouveauControle.heure}
                       onChange={(e) => setNouveauControle(prev => ({ ...prev, heure: e.target.value }))}
-                      disabled={isSubmitting}
                       required
                     />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="typeControle">Type de contrôle *</label>
-                    <select
-                      id="typeControle"
-                      value={nouveauControle.typeControle}
-                      onChange={(e) => setNouveauControle(prev => ({ ...prev, typeControle: e.target.value }))}
-                      disabled={isSubmitting}
-                      required
-                    >
-                      {typesControles.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="priorite">Priorité</label>
-                    <select
-                      id="priorite"
-                      value={nouveauControle.priorite}
-                      onChange={(e) => setNouveauControle(prev => ({ ...prev, priorite: e.target.value as any }))}
-                      disabled={isSubmitting}
-                    >
-                      {priorites.map(priorite => (
-                        <option key={priorite.value} value={priorite.value}>{priorite.label}</option>
-                      ))}
-                    </select>
                   </div>
 
                   <div className="form-group">
@@ -787,7 +750,6 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                         entrepriseId: e.target.value,
                         instrumentsSelectionnes: [] // Reset instruments when changing company
                       }))}
-                      disabled={isSubmitting}
                       required
                     >
                       <option value="">Sélectionner une entreprise</option>
@@ -805,11 +767,10 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                       id="technicien"
                       value={nouveauControle.technicienId}
                       onChange={(e) => setNouveauControle(prev => ({ ...prev, technicienId: e.target.value }))}
-                      disabled={isSubmitting}
                       required
                     >
                       <option value="">Sélectionner un technicien</option>
-                      {agents.filter(t => t.statut === 'actif').map(technicien => (
+                      {techniciens.filter(t => t.statut === 'actif').map(technicien => (
                         <option key={technicien.id} value={technicien.id}>
                           {technicien.prenom} {technicien.nom} - {technicien.role}
                         </option>
@@ -820,21 +781,14 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                   {entrepriseSelectionnee && (
                     <div className="form-group full-width">
                       <label>Instruments à contrôler *</label>
-                      {loadingInstruments ? (
-                        <div className="loading-instruments">
-                          <div className="spinner"></div>
-                          <span>Chargement des instruments...</span>
-                        </div>
-                      ) : (
                       <div className="instruments-selection">
-                        {entrepriseSelectionnee.instruments?.map((instrument, index) => (
+                        {entrepriseSelectionnee.instruments.map((instrument, index) => (
                           <div key={index} className="instrument-checkbox">
                             <input
                               type="checkbox"
                               id={`instrument-${index}`}
                               checked={nouveauControle.instrumentsSelectionnes.includes(index.toString())}
                               onChange={() => handleInstrumentToggle(index.toString())}
-                              disabled={isSubmitting}
                             />
                             <label htmlFor={`instrument-${index}`} className="instrument-label">
                               <div className="instrument-info">
@@ -845,11 +799,8 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                               </div>
                             </label>
                           </div>
-                        )) || (
-                          <p className="no-instruments">Aucun instrument trouvé pour cette entreprise</p>
-                        )}
+                        ))}
                       </div>
-                      )}
                     </div>
                   )}
 
@@ -859,7 +810,6 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                       id="notes"
                       value={nouveauControle.notes}
                       onChange={(e) => setNouveauControle(prev => ({ ...prev, notes: e.target.value }))}
-                      disabled={isSubmitting}
                       placeholder="Notes additionnelles pour ce contrôle..."
                       rows={3}
                     />
@@ -874,23 +824,14 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                     type="button" 
                     className="btn-secondary"
                     onClick={() => handlePrintControlForm()}
-                    disabled={!nouveauControle.entrepriseId || !nouveauControle.technicienId || isSubmitting}
+                    disabled={!nouveauControle.entrepriseId || !nouveauControle.technicienId}
                   >
                     <Printer size={16} />
                     Imprimer fiche
                   </button>
-                  <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <div className="spinner" style={{ width: '16px', height: '16px' }}></div>
-                        Planification...
-                      </>
-                    ) : (
-                      <>
+                  <button type="submit" className="btn-primary">
                     <Save size={16} />
                     Planifier le contrôle
-                      </>
-                    )}
                   </button>
                 </div>
               </form>

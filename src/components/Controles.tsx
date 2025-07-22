@@ -1,65 +1,66 @@
 import React, { useState } from 'react';
 import { Calendar, CheckSquare, Clock, AlertCircle } from 'lucide-react';
 import PlanificationControle from './PlanificationControle';
-import { useControles } from '../hooks/useApiData';
 
-interface ControlesProps {
-  userRole?: string;
-}
-
-const Controles: React.FC<ControlesProps> = ({ userRole }) => {
+const Controles: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'planifies' | 'en_cours' | 'termines'>('planifies');
   const [showPlanification, setShowPlanification] = useState(false);
-  
-  // Utiliser le hook pour récupérer les contrôles depuis l'API
-  const { controles, loading, error, refetch } = useControles();
-  
-  // Vérifier si l'utilisateur peut planifier des contrôles
-  const canPlanControles = userRole === 'admin' || userRole === 'superviseur';
 
-  // Organiser les contrôles par statut
-  const controlesByStatus = {
-    planifies: controles.filter(c => c.statut === 'planifie'),
-    en_cours: controles.filter(c => c.statut === 'en_cours'),
-    termines: controles.filter(c => c.statut === 'termine')
+  const controles = {
+    planifies: [
+      {
+        id: 1,
+        entreprise: 'Casino Supermarché',
+        type: 'Balance commerciale',
+        date: '2025-01-16',
+        agent: 'M. MBADINGA',
+        priorite: 'haute'
+      },
+      {
+        id: 2,
+        entreprise: 'Shell Gabon',
+        type: 'Compteur carburant',
+        date: '2025-01-17',
+        agent: 'Mme BONGO',
+        priorite: 'normale'
+      }
+    ],
+    en_cours: [
+      {
+        id: 3,
+        entreprise: 'Marché du Mont-Bouët',
+        type: 'Balance commerciale',
+        date: '2025-01-15',
+        agent: 'M. OBAME',
+        progression: 65
+      }
+    ],
+    termines: [
+      {
+        id: 4,
+        entreprise: 'SOGATRA',
+        type: 'Balance commerciale',
+        date: '2025-01-15',
+        agent: 'M. MBADINGA',
+        resultat: 'conforme'
+      },
+      {
+        id: 5,
+        entreprise: 'Total Gabon',
+        type: 'Compteur carburant',
+        date: '2025-01-14',
+        agent: 'Mme BONGO',
+        resultat: 'non_conforme'
+      }
+    ]
   };
 
   const tabs = [
-    { key: 'planifies' as const, label: 'Planifiés', icon: Calendar, count: controlesByStatus.planifies.length },
-    { key: 'en_cours' as const, label: 'En cours', icon: Clock, count: controlesByStatus.en_cours.length },
-    { key: 'termines' as const, label: 'Terminés', icon: CheckSquare, count: controlesByStatus.termines.length }
+    { key: 'planifies' as const, label: 'Planifiés', icon: Calendar, count: controles.planifies.length },
+    { key: 'en_cours' as const, label: 'En cours', icon: Clock, count: controles.en_cours.length },
+    { key: 'termines' as const, label: 'Terminés', icon: CheckSquare, count: controles.termines.length }
   ];
 
-  const handleControlPlanned = () => {
-    refetch(); // Rafraîchir la liste des contrôles
-    setShowPlanification(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="page-container">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Chargement des contrôles...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="page-container">
-        <div className="error-container">
-          <AlertCircle size={48} />
-          <h3>Erreur de chargement</h3>
-          <p>{error}</p>
-          <button className="btn-primary" onClick={refetch}>
-            Réessayer
-          </button>
-        </div>
-      </div>
-    );
-  }
   return (
     <div className="page-container">
       <div className="page-header">
@@ -70,18 +71,10 @@ const Controles: React.FC<ControlesProps> = ({ userRole }) => {
             <p>Suivi des inspections et contrôles métrologiques</p>
           </div>
         </div>
-        {canPlanControles && (
-          <button className="btn-primary" onClick={() => setShowPlanification(true)}>
-            <Calendar size={20} />
-            Planifier un contrôle
-          </button>
-        )}
-        {!canPlanControles && (
-          <div className="access-denied-message">
-            <AlertCircle size={16} />
-            <span>Seuls les administrateurs et superviseurs peuvent planifier des contrôles</span>
-          </div>
-        )}
+        <button className="btn-primary" onClick={() => setShowPlanification(true)}>
+          <Calendar size={20} />
+          Planifier un contrôle
+        </button>
       </div>
 
       <div className="tabs-container">
@@ -104,26 +97,18 @@ const Controles: React.FC<ControlesProps> = ({ userRole }) => {
       <div className="controles-content">
         {activeTab === 'planifies' && (
           <div className="controles-list">
-            {controlesByStatus.planifies.map(controle => (
+            {controles.planifies.map(controle => (
               <div key={controle.id} className="controle-card planifie">
                 <div className="card-header">
-                  <h3>{controle.entreprise_nom}</h3>
+                  <h3>{controle.entreprise}</h3>
                   <span className={`priorite ${controle.priorite}`}>
-                    {controle.priorite === 'haute' ? 'Priorité haute' : 
-                     controle.priorite === 'urgente' ? 'Urgente' :
-                     controle.priorite === 'basse' ? 'Priorité basse' : 'Priorité normale'}
+                    {controle.priorite === 'haute' ? 'Priorité haute' : 'Priorité normale'}
                   </span>
                 </div>
                 <div className="card-content">
-                  <p><strong>Type:</strong> {controle.type_controle}</p>
-                  <p><strong>Date prévue:</strong> {new Date(controle.date_planifiee).toLocaleDateString('fr-FR')}</p>
-                  <p><strong>Agent assigné:</strong> {controle.agent_prenom} {controle.agent_nom}</p>
-                  {controle.heure_debut && (
-                    <p><strong>Heure:</strong> {controle.heure_debut}</p>
-                  )}
-                  {controle.observations && (
-                    <p><strong>Observations:</strong> {controle.observations}</p>
-                  )}
+                  <p><strong>Type:</strong> {controle.type}</p>
+                  <p><strong>Date prévue:</strong> {new Date(controle.date).toLocaleDateString('fr-FR')}</p>
+                  <p><strong>Agent assigné:</strong> {controle.agent}</p>
                 </div>
                 <div className="card-actions">
                   <button className="btn-secondary">Modifier</button>
@@ -136,25 +121,22 @@ const Controles: React.FC<ControlesProps> = ({ userRole }) => {
 
         {activeTab === 'en_cours' && (
           <div className="controles-list">
-            {controlesByStatus.en_cours.map(controle => (
+            {controles.en_cours.map(controle => (
               <div key={controle.id} className="controle-card en-cours">
                 <div className="card-header">
-                  <h3>{controle.entreprise_nom}</h3>
+                  <h3>{controle.entreprise}</h3>
                   <span className="status-en-cours">En cours</span>
                 </div>
                 <div className="card-content">
-                  <p><strong>Type:</strong> {controle.type_controle}</p>
-                  <p><strong>Date:</strong> {new Date(controle.date_realisation || controle.date_planifiee).toLocaleDateString('fr-FR')}</p>
-                  <p><strong>Agent:</strong> {controle.agent_prenom} {controle.agent_nom}</p>
-                  {controle.heure_debut && (
-                    <p><strong>Heure de début:</strong> {controle.heure_debut}</p>
-                  )}
+                  <p><strong>Type:</strong> {controle.type}</p>
+                  <p><strong>Date:</strong> {new Date(controle.date).toLocaleDateString('fr-FR')}</p>
+                  <p><strong>Agent:</strong> {controle.agent}</p>
                   <div className="progress-container">
-                    <div className="progress-label">Progression: {controle.progression || 0}%</div>
+                    <div className="progress-label">Progression: {controle.progression}%</div>
                     <div className="progress-bar">
                       <div 
                         className="progress-fill" 
-                        style={{ width: `${controle.progression || 0}%` }}
+                        style={{ width: `${controle.progression}%` }}
                       ></div>
                     </div>
                   </div>
@@ -170,18 +152,18 @@ const Controles: React.FC<ControlesProps> = ({ userRole }) => {
 
         {activeTab === 'termines' && (
           <div className="controles-list">
-            {controlesByStatus.termines.map(controle => (
+            {controles.termines.map(controle => (
               <div key={controle.id} className="controle-card termine">
                 <div className="card-header">
-                  <h3>{controle.entreprise_nom}</h3>
+                  <h3>{controle.entreprise}</h3>
                   <span className={`status ${controle.resultat === 'conforme' ? 'status-conforme' : 'status-non-conforme'}`}>
                     {controle.resultat === 'conforme' ? 'Conforme' : 'Non conforme'}
                   </span>
                 </div>
                 <div className="card-content">
-                  <p><strong>Type:</strong> {controle.type_controle}</p>
-                  <p><strong>Date:</strong> {new Date(controle.date_realisation || controle.date_planifiee).toLocaleDateString('fr-FR')}</p>
-                  <p><strong>Agent:</strong> {controle.agent_prenom} {controle.agent_nom}</p>
+                  <p><strong>Type:</strong> {controle.type}</p>
+                  <p><strong>Date:</strong> {new Date(controle.date).toLocaleDateString('fr-FR')}</p>
+                  <p><strong>Agent:</strong> {controle.agent}</p>
                 </div>
                 <div className="card-actions">
                   <button className="btn-secondary">Voir rapport</button>
@@ -195,10 +177,7 @@ const Controles: React.FC<ControlesProps> = ({ userRole }) => {
 
       {/* Modal de planification */}
       {showPlanification && (
-        <PlanificationControle 
-          onClose={() => setShowPlanification(false)}
-          onControlPlanned={handleControlPlanned}
-        />
+        <PlanificationControle onClose={() => setShowPlanification(false)} />
       )}
     </div>
   );
