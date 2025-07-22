@@ -30,12 +30,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
       </div>
       
       <div className="header-center">
-        <div className="notifications-envelope">
-          <Mail size={24} />
-          {unreadMessages > 0 && (
-            <span className="notification-badge">{unreadMessages}</span>
-          )}
-        </div>
+        {/* Le bouton de notification est déplacé dans header-right */}
       </div>
       
       <div className="header-right">
@@ -47,6 +42,13 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
           )}
           <button className="header-btn settings-btn" title="Paramètres">
             <Settings size={20} />
+          </button>
+          {/* Nouveau bouton de notification ici */}
+          <button className="header-btn notifications-envelope-btn" title="Messages non lus">
+            <Mail size={20} />
+            {unreadMessages > 0 && (
+              <span className="notification-badge">{unreadMessages}</span>
+            )}
           </button>
         </div>
         

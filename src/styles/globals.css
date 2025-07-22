@@ -159,27 +159,6 @@ body {
 }
 
 .notifications-envelope {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.notifications-envelope:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.header-right {
-  display: flex;
   align-items: center;
   gap: 2rem;
 }
@@ -191,6 +170,7 @@ body {
 }
 
 .header-btn {
+  position: relative; /* Nécessaire pour le positionnement du badge */
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -295,6 +275,28 @@ body {
   border: 2px solid white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+
+/* Notifications envelope button styles */
+.notifications-envelope-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); /* Bleu vif */
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  transform: scale(1.05);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white; /* Couleur de l'icône */
+}
+
+.notifications-envelope-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); /* Bleu plus foncé au survol */
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.6);
+  transform: translateY(-2px) scale(1.08);
+}
+
+.notifications-envelope-btn svg {
+  color: white; /* Assure que l'icône est blanche */
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+
 
 .user-profile {
   display: flex;
