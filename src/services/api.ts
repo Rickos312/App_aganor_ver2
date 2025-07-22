@@ -1,5 +1,5 @@
 // Service API principal pour gérer les requêtes authentifiées
-const API_BASE_URL = 'http://localhost:3003/api';
+const API_BASE_URL = 'https://localhost:3003/api';
 
 // Fonction utilitaire pour récupérer le token JWT depuis localStorage
 const getAuthToken = (): string | null => {
