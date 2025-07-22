@@ -40,14 +40,14 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
       
       <div className="header-right">
         <div className="header-actions">
-          <button className="header-btn settings-btn" title="Paramètres">
-            <Settings size={20} />
-          </button>
           {onLogout && (
             <button className="header-btn logout-btn" onClick={onLogout} title="Se déconnecter">
               <LogOut size={20} />
             </button>
           )}
+          <button className="header-btn settings-btn" title="Paramètres">
+            <Settings size={20} />
+          </button>
         </div>
         
         <div className={`user-profile ${user ? 'user-profile-connected' : ''}`}>

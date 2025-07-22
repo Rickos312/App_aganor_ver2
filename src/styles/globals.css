@@ -230,6 +230,37 @@ body {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
+/* Bouton des paramètres - Style vif et visible */
+.settings-btn {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #374151 !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem !important;
+  margin-left: 0.75rem;
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  color: #1f2937 !important;
+  border-color: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px) scale(1.08);
+}
+
+.settings-btn svg {
+  color: #374151;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  transition: all 0.3s ease;
+}
+
+.settings-btn:hover svg {
+  color: #1f2937;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
 .notifications {
   position: relative;
   cursor: pointer;
