@@ -252,33 +252,28 @@ body {
 
 .settings-btn svg {
   color: #374151;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-  transition: all 0.3s ease;
+/* Bouton de notifications avec fond bleu */
+.notifications-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  border: 2px solid rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+  transform: scale(1.05) !important;
+  color: white !important;
 }
 
-.settings-btn:hover svg {
-  color: #1f2937;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+.notifications-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6) !important;
+  transform: translateY(-2px) scale(1.08) !important;
 }
 
-.notifications {
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  background: var(--background-glass);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.notifications-btn svg {
+  color: white !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
-.notifications:hover {
-  transform: scale(1.05);
-  background: rgba(255,255,255,0.2);
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
-}
-
-.notification-badge {
+.notifications-btn .notification-badge {
   position: absolute;
   top: -6px;
   right: -6px;
@@ -290,10 +285,11 @@ body {
   font-size: 0.7rem;
   font-weight: 600;
   display: flex;
-  align-items: center;
+  font-size: 0.7rem;
   justify-content: center;
   border: 2px solid white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
 }
 
 .user-profile {
@@ -380,8 +376,8 @@ body {
   background: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
 }
-
-.connection-status-dot.disconnected {
+  top: -6px;
+  right: -6px;
   background: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
 }
