@@ -2521,6 +2521,7 @@ body {
   display: grid;
   gap: 1rem;
 }
+}
 
 .backup-item {
   display: flex;
