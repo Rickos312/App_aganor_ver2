@@ -34,24 +34,6 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
       </div>
       
       <div className="header-right">
-        <div className="header-actions">
-          {onLogout && (
-            <button className="header-btn logout-btn" onClick={onLogout} title="Se déconnecter">
-              <LogOut size={20} />
-            </button>
-          )}
-          <button className="header-btn settings-btn" title="Paramètres">
-            <Settings size={20} />
-          </button>
-          {/* Nouveau bouton de notification ici */}
-          <button className="header-btn notifications-envelope-btn" title="Messages non lus">
-            <Mail size={20} />
-            {unreadMessages > 0 && (
-              <span className="notification-badge">{unreadMessages}</span>
-            )}
-          </button>
-        </div>
-        
         <div className={`user-profile ${user ? 'user-profile-connected' : ''}`}>
           <div className="user-info">
             <span className="user-name">{user.nom}</span>
@@ -63,6 +45,28 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, isAuthenticated = false
             </div>
             <div className={`connection-status-dot ${isAuthenticated ? 'connected' : 'disconnected'}`}></div>
           </div>
+        </div>
+        
+        <div className="header-actions">
+          {/* Bouton de notification (enveloppe) */}
+          <button className="header-btn notifications-envelope-btn" title="Messages non lus">
+            <Mail size={20} />
+            {unreadMessages > 0 && (
+              <span className="notification-badge">{unreadMessages}</span>
+            )}
+          </button>
+          
+          {/* Bouton des paramètres (roue crantée) */}
+          <button className="header-btn settings-btn" title="Paramètres">
+            <Settings size={20} />
+          </button>
+          
+          {/* Bouton de déconnexion */}
+          {onLogout && (
+            <button className="header-btn logout-btn" onClick={onLogout} title="Se déconnecter">
+              <LogOut size={20} />
+            </button>
+          )}
         </div>
       </div>
     </header>
