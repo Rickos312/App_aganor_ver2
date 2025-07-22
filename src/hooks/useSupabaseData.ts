@@ -193,36 +193,6 @@ export function useControles() {
     }
   };
 
-  const startControle = async (id: string) => {
-    try {
-      const updatedControle = await ControleService.update(id, {
-        statut: 'en_cours',
-        date_realisation: new Date().toISOString().split('T')[0],
-        heure_debut: new Date().toTimeString().substring(0, 5),
-        progression: 10
-      });
-      await fetchControles();
-      return updatedControle;
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Erreur lors du démarrage du contrôle');
-    }
-  };
-
-  const completeControle = async (id: string, resultat: 'conforme' | 'non_conforme', observations?: string) => {
-    try {
-      const updatedControle = await ControleService.update(id, {
-        statut: 'termine',
-        resultat,
-        observations,
-        heure_fin: new Date().toTimeString().substring(0, 5),
-        progression: 100
-      });
-      await fetchControles();
-      return updatedControle;
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la finalisation du contrôle');
-    }
-  };
   useEffect(() => {
     fetchControles();
   }, []);
@@ -235,9 +205,7 @@ export function useControles() {
     createControle,
     updateControle,
     deleteControle,
-    addInstruments,
-    startControle,
-    completeControle
+    addInstruments
   };
 }
 

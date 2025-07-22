@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, Building2, Settings, Save, X, ChevronLeft, ChevronRight, Plus, Printer } from 'lucide-react';
-import { useEntreprises, useAgents, useControles } from '../hooks/useSupabaseData';
 
 interface Instrument {
   type: string;
@@ -39,23 +38,87 @@ interface ControleEvent {
 
 interface PlanificationControleProps {
   onClose: () => void;
-  onControleCreated?: () => void;
 }
 
-const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, onControleCreated }) => {
+const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ControleEvent | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Hooks pour récupérer les données depuis Firebase
-  const { entreprises, loading: loadingEntreprises } = useEntreprises();
-  const { agents, loading: loadingAgents } = useAgents();
-  const { createControle } = useControles();
+  // Données des entreprises avec instruments
+  const entreprises: Entreprise[] = [
+    {
+      id: 1,
+      nom: 'SOGATRA',
+      adresse: 'Boulevard de la République, Libreville',
+      instruments: [
+        { type: 'Balance commerciale', marque: 'Mettler Toledo', modele: 'XS204', numeroSerie: 'MT2025001', localisation: 'Caisse principale' }
+      ]
+    },
+    {
+      id: 2,
+      nom: 'Total Gabon',
+      adresse: 'Avenue du Colonel Parant, Port-Gentil',
+      instruments: [
+        { type: 'Compteur carburant', marque: 'Gilbarco', modele: 'Encore 700S', numeroSerie: 'GB2025001', localisation: 'Station 1' }
+      ]
+    },
+    {
+      id: 3,
+      nom: 'Casino Supermarché',
+      adresse: 'Centre-ville, Libreville',
+      instruments: [
+        { type: 'Balance commerciale', marque: 'Mettler Toledo', modele: 'XS204', numeroSerie: 'MT2025002', localisation: 'Caisse 1' },
+        { type: 'Balance commerciale', marque: 'Sartorius', modele: 'Entris', numeroSerie: 'SR2025001', localisation: 'Caisse 2' }
+      ]
+    },
+    {
+      id: 4,
+      nom: 'Carrefour Immaculé',
+      adresse: 'Quartier Immaculé Conception, Libreville',
+      instruments: [
+        { type: 'Balance commerciale', marque: 'Mettler Toledo', modele: 'XS204', numeroSerie: 'MT2025003', localisation: 'Caisse principale' }
+      ]
+    },
+    {
+      id: 5,
+      nom: 'Station Total Gabon',
+      adresse: 'Boulevard Triomphal, Libreville',
+      instruments: [
+        { type: 'Pompe à essence', marque: 'Gilbarco', modele: 'Encore 700S', numeroSerie: 'GB2025002', localisation: 'Îlot 1' }
+      ]
+    },
+    {
+      id: 6,
+      nom: 'Petro-Gabon',
+      adresse: 'Route de l\'Aéroport, Libreville',
+      instruments: [
+        { type: 'Pompe à essence', marque: 'Wayne', modele: 'Helix 6000', numeroSerie: 'WY2025001', localisation: 'Îlot principal' }
+      ]
+    },
+    {
+      id: 7,
+      nom: 'ETS-Jean Pneu',
+      adresse: 'Quartier Akanda, Libreville',
+      instruments: [
+        { type: 'Manomètre à pression', marque: 'Bourdon Haenni', modele: 'BH-250', numeroSerie: 'BH2025001', localisation: 'Atelier principal' }
+      ]
+    }
+  ];
 
-  // Filtrer les agents actifs
-  const agentsActifs = agents.filter(agent => agent.statut === 'actif');
+  // Données des techniciens
+  const techniciens: Technicien[] = [
+    { id: 1, nom: 'MBADINGA', prenom: 'Jean-Claude', role: 'Inspecteur', zone: 'Libreville Nord', statut: 'actif' },
+    { id: 2, nom: 'BONGO', prenom: 'Marie-Claire', role: 'Superviseur', zone: 'Port-Gentil', statut: 'actif' },
+    { id: 3, nom: 'NDONG', prenom: 'Martin', role: 'Inspecteur', zone: 'Libreville Sud', statut: 'actif' },
+    { id: 4, nom: 'MIGUELI', prenom: 'Paul', role: 'Technicien Qualité', zone: 'Libreville', statut: 'actif' },
+    { id: 5, nom: 'MBA EKOMY', prenom: 'Jean', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' },
+    { id: 6, nom: 'KOUMBA', prenom: 'Jérome', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'conge' },
+    { id: 7, nom: 'DIESSIEMOU', prenom: 'Gildas', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' },
+    { id: 8, nom: 'OYINI', prenom: 'Viviane', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' },
+    { id: 9, nom: 'PENDY', prenom: 'Vanessa', role: 'Technicien Métrologie Légale', zone: 'Libreville', statut: 'actif' }
+  ];
 
   // Événements de contrôle existants
   const [controleEvents, setControleEvents] = useState<ControleEvent[]>([
@@ -145,15 +208,15 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
       return;
     }
 
-    const entreprise = entreprises.find(e => e.id === nouveauControle.entrepriseId);
-    const technicien = agentsActifs.find(t => t.id === nouveauControle.technicienId);
+    const entreprise = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
+    const technicien = techniciens.find(t => t.id === parseInt(nouveauControle.technicienId));
 
     if (!entreprise || !technicien) {
       alert('Entreprise ou technicien non trouvé');
       return;
     }
 
-    const instrumentsSelectionnes = (entreprise.instruments || []).filter((_, index) => 
+    const instrumentsSelectionnes = entreprise.instruments.filter((_, index) => 
       nouveauControle.instrumentsSelectionnes.includes(index.toString())
     );
 
@@ -162,51 +225,29 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
       return;
     }
 
-    // Créer le contrôle dans Firebase
-    handleCreateControle(entreprise.id, technicien.id, instrumentsSelectionnes);
-  };
+    const newEvent: ControleEvent = {
+      id: Date.now().toString(),
+      date: nouveauControle.date,
+      heure: nouveauControle.heure,
+      entreprise,
+      technicien,
+      instruments: instrumentsSelectionnes,
+      statut: 'planifie',
+      notes: nouveauControle.notes
+    };
 
-  const handleCreateControle = async (entrepriseId: string, agentId: string, instruments: any[]) => {
-    setIsSubmitting(true);
-    try {
-      const controleData = {
-        entreprise_id: entrepriseId,
-        agent_id: agentId,
-        type_controle: nouveauControle.controleType || instruments[0]?.type || 'Contrôle général',
-        date_planifiee: nouveauControle.date,
-        heure_debut: nouveauControle.heure,
-        statut: 'planifie' as const,
-        priorite: 'normale' as const,
-        progression: 0,
-        observations: nouveauControle.notes
-      };
-
-      await createControle(controleData);
-      
-      // Réinitialiser le formulaire
-      setNouveauControle({
-        date: '',
-        heure: '',
-        entrepriseId: '',
-        technicienId: '',
-        instrumentsSelectionnes: [],
-        notes: ''
-      });
-      
-      setShowEventModal(false);
-      
-      // Notifier le parent pour rafraîchir les données
-      if (onControleCreated) {
-        onControleCreated();
-      }
-      
-      alert('Contrôle planifié avec succès !');
-    } catch (error) {
-      console.error('Erreur lors de la création du contrôle:', error);
-      alert('Erreur lors de la planification du contrôle');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setControleEvents(prev => [...prev, newEvent]);
+    
+    // Réinitialiser le formulaire
+    setNouveauControle({
+      date: '',
+      heure: '',
+      entrepriseId: '',
+      technicienId: '',
+      instrumentsSelectionnes: [],
+      notes: ''
+    });
+    setShowEventModal(false);
   };
 
   const handleInstrumentToggle = (index: string) => {
@@ -256,7 +297,7 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  const entrepriseSelectionnee = entreprises.find(e => e.id === nouveauControle.entrepriseId);
+  const entrepriseSelectionnee = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
 
   // Fonction pour imprimer la fiche de contrôle
   const handlePrintControlForm = () => {
@@ -265,12 +306,12 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
       return;
     }
 
-    const entreprise = entreprises.find(e => e.id === nouveauControle.entrepriseId);
-    const technicien = agentsActifs.find(t => t.id === nouveauControle.technicienId);
+    const entreprise = entreprises.find(e => e.id === parseInt(nouveauControle.entrepriseId));
+    const technicien = techniciens.find(t => t.id === parseInt(nouveauControle.technicienId));
     
     if (!entreprise || !technicien) return;
 
-    const instrumentsSelectionnes = (entreprise.instruments || []).filter((_, index) => 
+    const instrumentsSelectionnes = entreprise.instruments.filter((_, index) => 
       nouveauControle.instrumentsSelectionnes.includes(index.toString())
     );
 
@@ -710,11 +751,8 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                         instrumentsSelectionnes: [] // Reset instruments when changing company
                       }))}
                       required
-                      disabled={loadingEntreprises}
                     >
-                      <option value="">
-                        {loadingEntreprises ? 'Chargement...' : 'Sélectionner une entreprise'}
-                      </option>
+                      <option value="">Sélectionner une entreprise</option>
                       {entreprises.map(entreprise => (
                         <option key={entreprise.id} value={entreprise.id}>
                           {entreprise.nom}
@@ -730,12 +768,9 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                       value={nouveauControle.technicienId}
                       onChange={(e) => setNouveauControle(prev => ({ ...prev, technicienId: e.target.value }))}
                       required
-                      disabled={loadingAgents}
                     >
-                      <option value="">
-                        {loadingAgents ? 'Chargement...' : 'Sélectionner un technicien'}
-                      </option>
-                      {agentsActifs.map(technicien => (
+                      <option value="">Sélectionner un technicien</option>
+                      {techniciens.filter(t => t.statut === 'actif').map(technicien => (
                         <option key={technicien.id} value={technicien.id}>
                           {technicien.prenom} {technicien.nom} - {technicien.role}
                         </option>
@@ -747,7 +782,7 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                     <div className="form-group full-width">
                       <label>Instruments à contrôler *</label>
                       <div className="instruments-selection">
-                        {(entrepriseSelectionnee.instruments || []).map((instrument, index) => (
+                        {entrepriseSelectionnee.instruments.map((instrument, index) => (
                           <div key={index} className="instrument-checkbox">
                             <input
                               type="checkbox"
@@ -794,13 +829,9 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose, 
                     <Printer size={16} />
                     Imprimer fiche
                   </button>
-                  <button 
-                    type="submit" 
-                    className="btn-primary"
-                    disabled={isSubmitting || loadingEntreprises || loadingAgents}
-                  >
+                  <button type="submit" className="btn-primary">
                     <Save size={16} />
-                    {isSubmitting ? 'Planification...' : 'Planifier le contrôle'}
+                    Planifier le contrôle
                   </button>
                 </div>
               </form>
