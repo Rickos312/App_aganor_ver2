@@ -56,6 +56,20 @@ const Entreprises: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSecteur, setSelectedSecteur] = useState('');
   const [showModal, setShowModal] = useState(false);
+  import { useEffect } from 'react'; // ← tu peux l’ajouter en haut SI PAS DÉJÀ FAIT
+
+useEffect(() => {
+  if (showModal) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
+
+  return () => {
+    document.body.style.overflow = 'auto';
+  };
+}, [showModal]);
+
   const [entreprises, setEntreprises] = useState<Entreprise[]>([
     {
       id: 1,
