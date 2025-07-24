@@ -12,7 +12,7 @@
   padding: 3rem 2rem;
   color: white;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .agents-header::before {
