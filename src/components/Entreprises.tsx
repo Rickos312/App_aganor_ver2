@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Building2, MapPin, Phone, Mail, X, Save, User, Settings, Navigation } from 'lucide-react';
 import '../styles/entreprises.css';
 interface Instrument {
@@ -56,7 +56,6 @@ const Entreprises: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSecteur, setSelectedSecteur] = useState('');
   const [showModal, setShowModal] = useState(false);
-  import { useEffect } from 'react'; // ← tu peux l’ajouter en haut SI PAS DÉJÀ FAIT
 
 useEffect(() => {
   if (showModal) {
