@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Plus, Building2, MapPin, Phone, Mail, X, Save, User, Settings, Navigation } from 'lucide-react';
-
+import '../styles/entreprises.css';
 interface Instrument {
   type: string;
   marque: string;
