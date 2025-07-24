@@ -570,24 +570,24 @@ const Entreprises: React.FC = () => {
 
       {/* Modal pour ajouter une nouvelle entreprise */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content large-modal">
+        <div className="modal-overlay-enterprise">
+          <div className="modal-content-enterprise">
             <div className="modal-header">
               <h2>Nouvelle Entreprise</h2>
-              <button className="modal-close" onClick={handleCloseModal}>
+              <button className="modal-close-enterprise" onClick={handleCloseModal}>
                 <X size={24} />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="modal-form">
+            <form onSubmit={handleSubmit} className="modal-form-enterprise">
               {/* Informations générales */}
-              <div className="form-section">
-                <h3 className="section-title">
+              <div className="form-section-enterprise">
+                <h3 className="section-title-enterprise">
                   <Building2 size={20} />
                   Informations générales
                 </h3>
-                <div className="form-grid">
-                  <div className="form-group">
+                <div className="form-grid-enterprise">
+                  <div className="form-group-enterprise">
                     <label htmlFor="nom">Nom de l'entreprise *</label>
                     <input
                       type="text"
@@ -599,7 +599,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="siret">SIRET *</label>
                     <input
                       type="text"
@@ -612,7 +612,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group full-width">
+                  <div className="form-group-enterprise full-width">
                     <label htmlFor="adresse">Adresse</label>
                     <input
                       type="text"
@@ -623,7 +623,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="telephone">Téléphone</label>
                     <input
                       type="tel"
@@ -634,7 +634,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="email">Email</label>
                     <input
                       type="email"
@@ -645,7 +645,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group full-width">
+                  <div className="form-group-enterprise full-width">
                     <label htmlFor="secteur">Secteur d'activité *</label>
                     <select
                       id="secteur"
@@ -663,13 +663,13 @@ const Entreprises: React.FC = () => {
               </div>
 
               {/* Point de contact */}
-              <div className="form-section">
-                <h3 className="section-title">
+              <div className="form-section-enterprise">
+                <h3 className="section-title-enterprise">
                   <User size={20} />
                   Point de contact
                 </h3>
-                <div className="form-grid">
-                  <div className="form-group">
+                <div className="form-grid-enterprise">
+                  <div className="form-group-enterprise">
                     <label htmlFor="contact-nom">Nom</label>
                     <input
                       type="text"
@@ -680,7 +680,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="contact-prenom">Prénom</label>
                     <input
                       type="text"
@@ -691,7 +691,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="contact-telephone">Téléphone</label>
                     <input
                       type="tel"
@@ -702,7 +702,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="contact-email">Email</label>
                     <input
                       type="email"
@@ -716,13 +716,13 @@ const Entreprises: React.FC = () => {
               </div>
 
               {/* Géolocalisation */}
-              <div className="form-section">
-                <h3 className="section-title">
+              <div className="form-section-enterprise">
+                <h3 className="section-title-enterprise">
                   <Navigation size={20} />
                   Géolocalisation
                 </h3>
-                <div className="form-grid">
-                  <div className="form-group">
+                <div className="form-grid-enterprise">
+                  <div className="form-group-enterprise">
                     <label htmlFor="latitude">Latitude</label>
                     <input
                       type="number"
@@ -734,7 +734,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-enterprise">
                     <label htmlFor="longitude">Longitude</label>
                     <input
                       type="number"
@@ -746,7 +746,7 @@ const Entreprises: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group full-width">
+                  <div className="form-group-enterprise full-width">
                     <button
                       type="button"
                       className="btn-secondary geolocation-btn"
@@ -760,8 +760,8 @@ const Entreprises: React.FC = () => {
               </div>
 
               {/* Instruments de mesure */}
-              <div className="form-section">
-                <h3 className="section-title">
+              <div className="form-section-enterprise">
+                <h3 className="section-title-enterprise">
                   <Settings size={20} />
                   Instruments de mesure (5 maximum)
                 </h3>
@@ -770,7 +770,7 @@ const Entreprises: React.FC = () => {
                     <div key={index} className="instrument-card">
                       <h4>Instrument {index + 1}</h4>
                       <div className="instrument-grid">
-                        <div className="form-group">
+                        <div className="form-group-enterprise">
                           <label>Type d'instrument</label>
                           <select
                             value={instrument.type}
@@ -783,7 +783,7 @@ const Entreprises: React.FC = () => {
                           </select>
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-enterprise">
                           <label>Marque</label>
                           <input
                             type="text"
@@ -793,7 +793,7 @@ const Entreprises: React.FC = () => {
                           />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-enterprise">
                           <label>Modèle</label>
                           <input
                             type="text"
@@ -803,7 +803,7 @@ const Entreprises: React.FC = () => {
                           />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-enterprise">
                           <label>Numéro de série</label>
                           <input
                             type="text"
@@ -813,7 +813,7 @@ const Entreprises: React.FC = () => {
                           />
                         </div>
 
-                        <div className="form-group full-width">
+                        <div className="form-group-enterprise full-width">
                           <label>Localisation dans l'entreprise</label>
                           <input
                             type="text"
@@ -828,11 +828,11 @@ const Entreprises: React.FC = () => {
                 </div>
               </div>
 
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+              <div className="modal-actions-enterprise">
+                <button type="button" className="btn-cancel-enterprise" onClick={handleCloseModal}>
                   Annuler
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn-save-enterprise">
                   <Save size={20} />
                   Enregistrer
                 </button>
