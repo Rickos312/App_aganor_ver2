@@ -244,6 +244,38 @@ const Entreprises: React.FC = () => {
     }
   });
 
+  // Fonction pour ouvrir le modal et réinitialiser le formulaire
+  const handleOpenNewEntrepriseModal = () => {
+    // Réinitialiser le formulaire avec des valeurs vides
+    setNouvelleEntreprise({
+      siret: '',
+      nom: '',
+      adresse: '',
+      telephone: '',
+      email: '',
+      secteur: '',
+      instruments: [
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' },
+        { type: '', marque: '', modele: '', numeroSerie: '', localisation: '' }
+      ],
+      geolocalisation: {
+        latitude: '',
+        longitude: ''
+      },
+      pointContact: {
+        nom: '',
+        prenom: '',
+        telephone: '',
+        email: ''
+      }
+    });
+    // Afficher le modal
+    setShowModal(true);
+  };
+
   const secteurs = ['Transport', 'Pétrole', 'Santé', 'Commerce', 'Industrie', 'Agroalimentaire', 'Services'];
   
   const typesInstruments = [
@@ -461,7 +493,7 @@ const Entreprises: React.FC = () => {
             <p>Répertoire des entreprises contrôlées par AGANOR</p>
           </div>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn-primary" onClick={handleOpenNewEntrepriseModal}>
           <Plus size={20} />
           Nouvelle entreprise
         </button>
