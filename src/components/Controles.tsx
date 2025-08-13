@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Calendar, CheckSquare, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, CheckSquare, Clock } from 'lucide-react';
 import PlanificationControle from './PlanificationControle';
 
 const Controles: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'planifies' | 'en_cours' | 'termines'>('planifies');
   const [showPlanification, setShowPlanification] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
 
   const controles = {
     planifies: [
@@ -42,7 +43,8 @@ const Controles: React.FC = () => {
         type: 'Balance commerciale',
         date: '2025-01-15',
         agent: 'M. MBADINGA',
-        resultat: 'conforme'
+        resultat: 'conforme',
+        pdf: '/Constat-de-verification.pdf'
       },
       {
         id: 5,
@@ -50,7 +52,8 @@ const Controles: React.FC = () => {
         type: 'Compteur carburant',
         date: '2025-01-14',
         agent: 'Mme BONGO',
-        resultat: 'non_conforme'
+        resultat: 'non_conforme',
+        pdf: '/Constat-de-verification.pdf'
       }
     ]
   };
@@ -77,6 +80,7 @@ const Controles: React.FC = () => {
         </button>
       </div>
 
+      {/* Onglets */}
       <div className="tabs-container">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -94,6 +98,7 @@ const Controles: React.FC = () => {
         })}
       </div>
 
+      {/* Contenus */}
       <div className="controles-content">
         {activeTab === 'planifies' && (
           <div className="controles-list">
@@ -166,7 +171,9 @@ const Controles: React.FC = () => {
                   <p><strong>Agent:</strong> {controle.agent}</p>
                 </div>
                 <div className="card-actions">
-                  <button className="btn-secondary">Voir rapport</button>
+                  <button className="btn-secondary" onClick={() => setShowPdf(controle.pdf)}>
+                    Voir constat
+                  </button>
                   <button className="btn-primary">Générer facture</button>
                 </div>
               </div>
@@ -175,9 +182,27 @@ const Controles: React.FC = () => {
         )}
       </div>
 
-      {/* Modal de planification */}
+      {/* Modal de Planification */}
       {showPlanification && (
         <PlanificationControle onClose={() => setShowPlanification(false)} />
+      )}
+
+      {/* Modal PDF */}
+      {showPdf && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Constat de Vérification</h2>
+              <button onClick={() => setShowPdf(false)}>✖</button>
+            </div>
+            <embed
+              src={showPdf}
+              type="application/pdf"
+              width="100%"
+              height="600px"
+            />
+          </div>
+        </div>
       )}
     </div>
   );
