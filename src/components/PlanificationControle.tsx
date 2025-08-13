@@ -468,7 +468,7 @@ const PlanificationControle: React.FC<PlanificationControleProps> = ({ onClose }
             </div>
             <div class="info-item">
               <div class="info-label">N° de fiche</div>
-              <div class="info-value">FC-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}</div>
+              <div class="info-value">FC-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Type de contrôle</div>
