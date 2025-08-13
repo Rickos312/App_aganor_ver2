@@ -12,6 +12,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeModule, setActiveModule }) => {
   const menuItems = [
     { id: 'dashboard' as const, icon: BarChart3, label: 'Tableau de bord' },
     { id: 'entreprises' as const, icon: Building2, label: 'Entreprises' },
+    { id: 'controles' as const, icon: CheckSquare, label: 'Contrôles' },
     { id: 'devis' as const, icon: CreditCard, label: 'Devis' },
     { id: 'agents' as const, icon: Users, label: 'Agents' },
     { id: 'parametres' as const, icon: Settings, label: 'Paramètres' }

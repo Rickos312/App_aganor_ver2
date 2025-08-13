@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Login from './components/Login';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
+import Dashboard from './components/Dashboard';
 import Entreprises from './components/Entreprises';
 import Controles from './components/Controles';
 import Devis from './components/Devis';
@@ -10,7 +11,7 @@ import Parametres from './components/Parametres';
 import Footer from './components/layout/Footer';
 import './styles/globals.css';
 import './styles/login.css';
-import Dashboard from './components/Dashboard';
+
 type ModuleType = 'dashboard' | 'entreprises' | 'controles' | 'devis' | 'agents' | 'parametres';
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
   const renderContent = () => {
     switch (activeModule) {
       case 'dashboard':
+        return <Dashboard />;
       case 'entreprises':
         return <Entreprises />;
       case 'controles':
